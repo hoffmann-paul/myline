@@ -6,6 +6,7 @@ from scapy.all import ARP
 import asyncio
 from bleak import BleakScanner
 import datetime
+import subprocess
 
 # SETUP VARIABLES
 file_cmddata_json = 'cmddata.json'
@@ -14,7 +15,7 @@ file_company_ids_json = 'company_ids.json'
 
 def _prefix():
     now = datetime.datetime.now()
-    return f"@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}]"
+    return f"@MyLine v1.1.0 [{now.strftime('%H:%M:%S')}]"
  
 
 def Gprint(string):
@@ -56,7 +57,7 @@ try:
         data = json.load(file)
     with open(file_cmddata_json, 'r') as file:
         saves = json.load(file)
-    with open('file_company_ids_json', 'r') as file:
+    with open(file_company_ids_json, 'r') as file:
         company_ids_raw = json.load(file)
 
     company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
@@ -286,6 +287,15 @@ while True:
                     RRprint(f">>{raw}<< isnt't a vaild command")
             else:
                 RRprint(f">>{raw}<< isnt't a vaild command")
+        elif cmd[0] == "app":
+            if cmd[1] == "lch":
+                try:
+                    application = saves[0]["Applications"][cmd[2]] 
+                    subprocess.run(["open", "-a", application])
+                except Exception:
+                    RRprint(f"MyLine doesnt's Support a Application named >>{application}>>")
+            else:
+                RRprint(f">>{raw}<< isnt't a vaild command")
         elif cmd[0] == "myline":
             if cmd[1] == "help":
                 YYprint("For Explanations visit the Github page:")
@@ -300,6 +310,7 @@ while True:
                 YYprint("data inspect count")
                 YYprint("net pg {url} {port}")
                 YYprint("ble HEAD devs [raw] [loop]")
+                YYprint("app lch {App}")
                 YYprint("myline help")
                 YYprint("myline info")
                 YYprint("myline check changes")
