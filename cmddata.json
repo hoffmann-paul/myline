@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "BLE-Aresse": {
+      "Custom Name": {
+        "adress": [
+          "adress1",
+          "adress2",
+          "adress3"
+        ],
+        "comment": "This is an example Device you can add as much adresses as you want"
+      }
+    }
+  }
+]
