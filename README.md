@@ -27,5 +27,11 @@ If you wanna enter more than one word pur it between "Marks"
 | myline check changes | Checks if there are some unsaved changes |
 | myline kill [force] | Kills the Python Programm, by adding force it dont ask if it should check for unsaved changes |
 
+## Version History
+# 1.1.0
+*In Progress*
+# v1.0.0
+The first Version of MyLine with some basic Features.
+
 ## License
 This project is licensed under the [MIT License](LICENSE).
