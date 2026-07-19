@@ -2,7 +2,6 @@ import json
 import shlex
 import socket
 import threading
-from scapy.all import ARP
 import asyncio
 from bleak import BleakScanner
 import datetime
