@@ -180,19 +180,25 @@ while True:
                                     found = True
                                     Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
                                 else:
-                                    try:
-                                        if i[parameter] == int(value):
-                                            found = True
-                                            Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
-                                        else:
-                                            if not found:
-                                                found = False
-                                    except Exception:
-                                        continue
-                            if not found:
-                                Rprint("nothing found under >>\"" + parameter + "\" == " + "\"" + str(value) + "\"")
+                                    # Only try integer comparison if the field value is an integer
+                                    field_value = i[parameter]
+                                    if isinstance(field_value, int):
+                                        try:
+                                            int_value = int(value)
+                                            if field_value == int_value:
+                                                found = True
+                                                Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
+                                            else:
+                                                if not found:
+                                                    found = False
+                                        except ValueError:
+                                            Rprint(f"Value '{value}' cannot be compared as integer for parameter '{parameter}'")
+                                            break
                         except KeyError:
                             Rprint("There is no parameter called >>" + parameter +"<<")
+                        else:
+                            if not found:
+                                Rprint("nothing found under >>\"" + parameter + "\" == " + "\"" + str(value) + "\"")
                 else:
                     RRprint(f">>{raw}<< isnt't a vaild command")
             elif cmd[1] == "HEAD":
