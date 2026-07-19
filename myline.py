@@ -263,12 +263,6 @@ while True:
                     RRprint(f">>{raw}<< isnt't a vaild command")
             else:
                 RRprint(f">>{raw}<< isnt't a vaild command")
-        elif cmd[0] == "kill":
-            if cmd[1] == "myline":
-                Rprint("Killing MyLine")
-                quit()
-            else:
-                RRprint(f">>{raw}<< isnt't a vaild command")
         elif cmd[0] == "myline":
             if cmd[1] == "help":
                 YYprint("All Commands:")
@@ -281,7 +275,7 @@ while True:
                 YYprint("ble HEAD devs {raw} {loop}")
                 YYprint("myline help")
                 YYprint("myline check changes")
-                YYprint("kill myline")
+                YYprint("myline kill {force}")
             elif cmd[1] == "check":
                 if cmd[2] == "changes":
                     with open('Datensätze/data.json', 'r') as file:
@@ -290,6 +284,28 @@ while True:
                         Rprint("Unsaved Changes between data and data.json")
                     else:
                         Gprint("No Unsaved Changes")
+                else:
+                    RRprint(f">>{raw}<< isnt't a vaild command")
+            elif cmd[1] == "kill":
+                if cmd[2] != "force":
+                    Wprint("Check for unsaved change before killing MyLine")
+                    Bprint("[Y/N]")
+                    answer = input()
+                    if answer == "Y" or answer == "y":
+                        with open('Datensätze/data.json', 'r') as file:
+                            saved_data = json.load(file)
+                        if saved_data != data:
+                            Rprint("Unsaved Changes between data and data.json")
+                        else:
+                            Gprint("No Unsaved Changes")
+                    elif answer == "N" or answer == "n":
+                        RRprint("Kill MyLine...")
+                        quit()
+                    else:
+                        RRprint(f">>{answer}<< isnt's a valid input")
+                elif cmd[2] == "force":
+                    RRprint("Kill MyLine...")
+                    quit()
                 else:
                     RRprint(f">>{raw}<< isnt't a vaild command")
             else:
