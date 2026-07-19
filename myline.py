@@ -6,11 +6,27 @@ import asyncio
 from bleak import BleakScanner
 import datetime
 import subprocess
+import argparse
+import platform
 
 # SETUP VARIABLES
 file_cmddata_json = 'cmddata.json'
-file_data_json = 'Datensätze/data.json'
 file_company_ids_json = 'company_ids.json'
+
+# --- Configurable data.json path ---
+# Precedence: CLI argument > default
+DEFAULT_DATA_JSON = 'Datensätze/data.json'
+
+parser = argparse.ArgumentParser(description="MyLine")
+parser.add_argument(
+    "--data-file",
+    dest="data_file",
+    default=DEFAULT_DATA_JSON,
+    help="Path to the data.json file (defaults to '%(default)s')"
+)
+args = parser.parse_args()
+
+file_data_json = args.data_file
 
 def _prefix():
     now = datetime.datetime.now()
@@ -50,6 +66,8 @@ def WWprint(string):
 Wprint("-" * 60)
 Wprint("Started MyLine...")
 Wprint("")
+Wprint(f"Using data file: {file_data_json}")
+Wprint("")
 
 try:
     with open(file_data_json, 'r') as file:
@@ -65,7 +83,7 @@ except Exception:
     Rprint("An Error corrupted while trying reading source files")
 
 Wprint("")
-Gprint("Started MyLine with Succsess")
+Gprint("Started MyLine with Success")
 Wprint("Type \"myline help\" for commands")
 Wprint("")
 now = datetime.datetime.now()
@@ -142,6 +160,26 @@ async def scan(time, show_none=False):
 def wait_for_stop(stop_event):
     input() 
     stop_event.set()
+
+def launch_app(application):
+    system = platform.system()
+    try:
+        if system == "Darwin":
+            subprocess.run(["open", "-a", application], check=True)
+        elif system == "Windows":
+            # 'start' is a cmd.exe builtin, not a standalone executable,
+            # so it has to go through the shell. The empty "" is the
+            # window-title argument that 'start' expects before the target.
+            subprocess.run(f'start "" "{application}"', shell=True, check=True)
+        elif system == "Linux":
+            # run the # executable directly (it needs to be in PATH).
+            subprocess.run([application], check=True)
+        else:
+            Rprint(f"Unsupported operating system: {system}")
+            return
+        Gprint(f"Launched >>{application}<<")
+    except Exception as e:
+        RRprint(f"Couldn't launch >>{application}<< on {system}: {e}")
 
 while True:
     now = datetime.datetime.now()
@@ -299,10 +337,11 @@ while True:
         elif cmd[0] == "app":
             if cmd[1] == "lch":
                 try:
-                    application = saves[0]["Applications"][cmd[2]] 
-                    subprocess.run(["open", "-a", application])
-                except Exception:
-                    RRprint(f"MyLine doesnt's Support a Application named >>{application}>>")
+                    application = saves[0]["Applications"][cmd[2]]
+                except (KeyError, IndexError):
+                    RRprint(f"MyLine doesn't support an Application named >>{cmd[2]}<<")
+                else:
+                    launch_app(application)
             else:
                 RRprint(f">>{raw}<< isnt't a vaild command")
         elif cmd[0] == "myline":

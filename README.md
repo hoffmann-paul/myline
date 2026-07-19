@@ -1,16 +1,12 @@
 # MyLine
 MyLine is my own command-line-tool
-
 ## Get startet
 1. Download all files from github.com/hoffmann-paul/myline
 2. Install everything in the requirements.txt
-3. Open myline.py in an editor
-4. Setup your filepaths for the files
-5. Save the file
-6. Open myline.py to Start MyLine
-
+3. Run MyLine: `python myline.py`
+   - By default it looks for the data file at `Datensätze/data.json`
+   - To use a different path, pass `--data-file`, e.g. `python myline.py --data-file path/to/data.json`
 For a list of all commands type: `myline help`
-
 ## Commands
 If you wanna enter more than one word pur it between "Marks"
 | Command | Description |
@@ -23,10 +19,14 @@ If you wanna enter more than one word pur it between "Marks"
 | data inspect count | Counts all Data Records |
 | net pg {url} {port} | Trys pinging a URL on a specific Port |
 | ble HEAD devs [raw] [loop] | Scans BLE Signals and shows an list of Name; Local-Name; rssi; tx_power; MAX-Adress; by adding raw it also shows devices where name == None, by adding loop it rescans every Second |
+| app lch {App} | Launches an application configured in cmddata.json |
 | myline help | Shows a list of all Commands |
 | myline info | Shows Link to GitHub page and MIT Licence |
 | myline check changes | Checks if there are some unsaved changes |
 | myline kill [force] | Kills the Python Programm, by adding force it dont ask if it should check for unsaved changes |
-
+## Command Line Options
+| Flag | Description |
+| ----- | ----- |
+| --data-file {path} | Path to the data.json file to load (defaults to `Datensätze/data.json`) |
 ## License
 This project is licensed under the [MIT License](LICENSE).
