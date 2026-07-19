@@ -349,8 +349,11 @@ while True:
                             saved_data = json.load(file)
                         if saved_data != data:
                             Rprint("Unsaved Changes between data and data.json")
+                            Rprint("Killing process is canceld...")
                         else:
                             Gprint("No Unsaved Changes")
+                            RRprint("Kill MyLine...")
+                            quit()
                     elif answer == "N" or answer == "n":
                         RRprint("Kill MyLine...")
                         quit()
