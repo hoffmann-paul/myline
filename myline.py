@@ -151,18 +151,8 @@ while True:
 
     cmd = []
     cmd = shlex.split(raw)
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
-    cmd.append("")
+    
+    cmd += [""] * 12
 
     try:
         if cmd[0] == "data":
@@ -304,7 +294,7 @@ while True:
         elif cmd[0] == "app":
             if cmd[1] == "lch":
                 try:
-                    application = saves[0]["Applications"][cmd[2]] 
+                    application = saves[1]["Applications"][cmd[2]] 
                     subprocess.run(["open", "-a", application])
                 except Exception:
                     RRprint(f"MyLine doesnt's Support a Application named >>{application}>>")
