@@ -14,31 +14,43 @@ import datetime
 # WRITE - - - for applying temporary changes
 # REQUEST - - - for request a input from the user
 
+def _prefix():
+    now = datetime.datetime.now()
+    return f"@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}]"
+ 
+
 def Gprint(string):
-    print(f"\033[32m{string}")
-
+    print(f"\033[32m{_prefix()} {string}\033[0m")
+ 
 def GGprint(string):
-    print(f"\033[0;42m{string}\033[0m")
-
-def RRprint(string):
-    print(f"\033[0;41m{string}\033[0m")
+    print(f"\033[0;42m{_prefix()} {string}\033[0m")
 
 def Rprint(string):
-    print(f"\033[31m{string}")
-
-def Bprint(string):
-    print(f"\033[34m{string}")
-
-def Wprint(string):
-    print(f"\033[0m{string}")
-
-def YYprint(string):
-    print(f"\033[0;43m{string}\033[0m")
+    print(f"\033[31m{_prefix()} {string}\033[0m")
+ 
+def RRprint(string):
+    print(f"\033[0;41m{_prefix()} {string}\033[0m")
 
 def Yprint(string):
-    print(f"\033[33m{string}")
+    print(f"\033[33m{_prefix()} {string}\033[0m")
+ 
+def YYprint(string):
+    print(f"\033[0;43m{_prefix()} {string}\033[0m")
+
+def Bprint(string):
+    print(f"\033[34m{_prefix()} {string}\033[0m")
+ 
+def BBprint(string):
+    print(f"\033[0;44m{_prefix()} {string}\033[0m")
+
+def Wprint(string):
+    print(f"\033[0m{_prefix()} {string}\033[0m")
+ 
+def WWprint(string):
+    print(f"\033[0;47;30m{_prefix()} {string}\033[0m")
 
 Wprint("Started MyLine...")
+Wprint("")
 
 try:
     with open('Datensätze/data.json', 'r') as file:
@@ -53,7 +65,13 @@ try:
 except Exception:
     Rprint("An Error corrupted while trying reading source files")
 
+Wprint("")
+Gprint("Started MyLine with Succsess")
 Wprint("Type \"myline help\" for commands")
+Wprint("")
+now = datetime.datetime.now()
+Wprint(f"Now is: {now}")
+Wprint("")
 
 known_devices = {}
 for entry in saves:
@@ -127,7 +145,8 @@ def wait_for_stop(stop_event):
     stop_event.set()
 
 while True:
-    Bprint("@MyLine v1.0.0 >>>")
+    now = datetime.datetime.now()
+    print(f"\033[34m@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}] >>> ", end="")
     raw = input()
 
     cmd = []
@@ -219,9 +238,14 @@ while True:
                         json.dump(data, file)
                 except Exception:
                     RRprint("Can't POST data as data.json")
-            elif cmd[1] == "s":
-                for i in data[0]:
-                    Wprint(i)
+            elif cmd[1] == "inspect":
+                if cmd[2] == "struc":
+                    for i in data[0]:
+                        Wprint(i)
+                elif cmd[2] == "count":
+                    Wprint(f"Counted {len(data)} Objects in data")
+                else:
+                    RRprint(f">>{raw}<< isnt't a vaild command")
             else:
                 RRprint(f">>{raw}<< isnt't a vaild command")
         elif cmd[0] == "net":
@@ -270,7 +294,8 @@ while True:
                 YYprint("data HEAD {i} {raw}")
                 YYprint("data WRITE {i} \"{parameter}\" \"{value}\"")
                 YYprint("data POST")
-                YYprint("data s")
+                YYprint("data inspect struc")
+                YYprint("data inspect count")
                 YYprint("net pg {url} {port}")
                 YYprint("ble HEAD devs {raw} {loop}")
                 YYprint("myline help")
@@ -315,5 +340,4 @@ while True:
     except Exception:
         RRprint("Something went wrong")
 
-    Wprint("")
     Wprint("")
