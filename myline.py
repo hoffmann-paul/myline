@@ -15,7 +15,7 @@ file_company_ids_json = 'company_ids.json'
 
 def _prefix():
     now = datetime.datetime.now()
-    return f"@MyLine v1.1.0 [{now.strftime('%H:%M:%S')}]"
+    return f"@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}]"
  
 
 def Gprint(string):
@@ -169,27 +169,41 @@ while True:
             if cmd[1] == "GET":
                 if cmd[2] == "i":
                     parameter = cmd[3]
-                    value = cmd[4]
-                    found = False
-                    try:
-                        for i in data:
-                            if i[parameter] == value:
-                                found = True
-                                Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
-                            else:
-                                try:
-                                    if i[parameter] == int(value):
-                                        found = True
-                                        Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
-                                    else:
-                                        if not found:
-                                            found = False
-                                except Exception:
-                                    continue
-                        if not found:
-                            Rprint("nothing found under >>\"" + parameter + "\" == " + "\"" + str(value) + "\"")
-                    except KeyError:
-                        Rprint("There is no parameter called >>" + parameter +"<<")
+                    if cmd[4] == "c":
+                        value = cmd[5]
+                        found = False
+                        try:
+                            for i in data:
+                                field_value = i.get(parameter, "")
+                                if isinstance(field_value, str) and value.lower() in field_value.lower():
+                                    found = True
+                                    Gprint("found >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<< under index " + str(data.index(i)) + " where value is \"" + str(data[data.index(i)][parameter]) + "\"")
+                            if not found:
+                                Rprint("nothing found under >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"")
+                        except KeyError:
+                            Rprint("There is no parameter called >>" + parameter + "<<")
+                    else:
+                        value = cmd[4]
+                        found = False
+                        try:
+                            for i in data:
+                                if i[parameter] == value:
+                                    found = True
+                                    Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
+                                else:
+                                    try:
+                                        if i[parameter] == int(value):
+                                            found = True
+                                            Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
+                                        else:
+                                            if not found:
+                                                found = False
+                                    except Exception:
+                                        continue
+                            if not found:
+                                Rprint("nothing found under >>\"" + parameter + "\" == " + "\"" + str(value) + "\"")
+                        except KeyError:
+                            Rprint("There is no parameter called >>" + parameter +"<<")
                 else:
                     RRprint(f">>{raw}<< isnt't a vaild command")
             elif cmd[1] == "HEAD":
@@ -303,6 +317,7 @@ while True:
                 YYprint("")
                 YYprint("All Commands:")
                 YYprint("data GET i {parameter} {value}")
+                YYprint("data GET i {parameter} c {value}")
                 YYprint("data HEAD {i} [raw]")
                 YYprint("data WRITE {i} \"{parameter}\" \"{value}\"")
                 YYprint("data POST")
