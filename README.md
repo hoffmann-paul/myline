@@ -12,8 +12,10 @@ If you wanna enter more than one word pur it between "Marks"
 | Command | Description |
 | ----- | ----- |
 | data GET i {parameter} {value} | Shows and index of a Data Record by entering a parameter and a value. parameter == valur do not repliy True also work when parameter contains value |
+| data HEAD f {index} | Shows all filled data for an index |
+| data HEAD raw {index} | Shows all data for an index |
 
-<!--| data HEAD {i} [raw] | Shows all filled data for an index (i), by adding raw it also shows data that is "" or 0 |
+<!--
 | data WRITE {i} {parameter} {value} | Overwrites a Value for a Parameter at an index temporary |
 | data POST | Saves tha data Array in the data.json file |
 | data inspect struc | Shows all Parameters |
