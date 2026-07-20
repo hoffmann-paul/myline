@@ -250,6 +250,23 @@ def data_inspect_count(flags):
 def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
 
+def ble_head_devs(flags):
+    if flags[0] == "raw":
+        show_none = True
+    else:
+        show_none = False
+
+    if flags[3] == "loop" or flags[4] == "loop":
+        stop_event = threading.Event()
+        listener = threading.Thread(target=wait_for_stop, args=(stop_event,), daemon=True)
+        listener.start()
+
+        while not stop_event.is_set():
+            asyncio.run(scan(1.0, show_none))
+            Wprint("")
+    else:
+        asyncio.run(scan(5.0, show_none))
+
 commands = {
     "data": {
         "GET": {
@@ -273,6 +290,11 @@ commands = {
     "net": {
         "pg": {
             "uop": net_pg_uop # Url On Port
+        }
+    },
+    "ble": {
+        "HEAD": {
+            "devs": ble_head_devs
         }
     }
 } 
