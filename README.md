@@ -20,6 +20,7 @@ If you wanna enter more than one word pur it between "Marks"
 | net pg {url} {port} | Trys pinging a URL on a specific Port |
 | ble HEAD devs [raw] [loop] | Scans BLE Signals and shows an list of Name; Local-Name; rssi; tx_power; MAX-Adress; by adding raw it also shows devices where name == None, by adding loop it rescans every Second |
 | app lch {App} | Launches an application configured in cmddata.json |
+| app list | Shows a List of every application configured in cmddata.json |
 | myline help | Shows a list of all Commands |
 | myline info | Shows Link to GitHub page and MIT Licence |
 | myline check changes | Checks if there are some unsaved changes |
