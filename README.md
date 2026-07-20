@@ -15,7 +15,7 @@ If you wanna enter more than one word pur it between "Marks"
 | data HEAD f {index} | Shows all filled data for an index |
 | data HEAD raw {index} | Shows all data for an index |
 | data WRITE t {index} {parameter} {value} | Overwrites a Value for a Parameter at an index temporary |
-| data POST | Post the data Array in the data.json file |
+| data POST a | Post the data Array in the data.json file |
 
 <!--
 | data inspect struc | Shows all Parameters |
