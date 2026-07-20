@@ -247,6 +247,9 @@ def data_inspect_struc(flags):
 def data_inspect_count(flags):
     Wprint(f"Counted {len(data)} Objects in data")
 
+def net_pg_uop(flags):
+    test_connection(flags[0], int(flags[1]))
+
 commands = {
     "data": {
         "GET": {
@@ -265,6 +268,11 @@ commands = {
         "inspect": {
             "struc": data_inspect_struc,
             "count": data_inspect_count
+        }
+    },
+    "net": {
+        "pg": {
+            "uop": net_pg_uop # Url On Port
         }
     }
 } 
