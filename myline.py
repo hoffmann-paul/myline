@@ -227,6 +227,13 @@ def data_head_raw(flags):
             m = i + " >>> " + str(data[int(index)][i]) 
             RRprint(m)
 
+def data_post_a(flags):
+    try:
+        with open(file_data_json, 'w') as file:
+            json.dump(data, file)
+    except Exception:
+        RRprint("Can't POST data as data.json")
+
 def data_write_t(flags):
     index = int(flags[0])
     parameter = flags[1]
@@ -236,14 +243,17 @@ def data_write_t(flags):
 commands = {
     "data": {
         "GET": {
-            "i": data_get_i
+            "i": data_get_i # i index
         },
         "HEAD": {
             "raw": data_head_raw,
-            "f": data_head_f
+            "f": data_head_f #f filled
         },
         "WRITE": {
-            "t": data_write_t
+            "t": data_write_t # mby expant from t= temp. and p= wirte and instant post
+        },
+        "POST": {
+            "a": data_post_a # a all
         }
     }
 } 
