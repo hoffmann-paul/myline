@@ -10,8 +10,6 @@ import argparse
 import platform
 import sys
 
-debug = False
-
 # SETUP VARIABLES
 file_cmddata_json = 'cmddata.json'
 file_company_ids_json = 'company_ids.json'
@@ -195,14 +193,57 @@ def data_get_i(flags):
                 found = True
                 Gprint("found >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<< under index " + str(data.index(i)) + " where value is \"" + str(data[data.index(i)][parameter]) + "\"")
         if not found:
-            Rprint("nothing found under >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"")
+            Rprint("nothing found under >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<<")
     except KeyError:
         Rprint("There is no parameter called >>" + parameter + "<<")
+
+def data_head_f(flags):
+    index = flags[0]
+    for i in data[int(index)]:
+        if str(data[int(index)][i]) != "":
+            if data[int(index)][i] != 0:
+                m = i + " >>> " + str(data[int(index)][i])
+                GGprint(m)
+
+def data_head_raw(flags):
+    index = flags[0]
+    for i in data[int(index)]:
+        if str(data[int(index)][i]) != "":
+            if data[int(index)][i] != 0:
+                if data[int(index)][i] != {}:
+                    if data[int(index)][i] != []:
+                        m = i + " >>> " + str(data[int(index)][i]) 
+                        GGprint(m)
+                    else:
+                        m = i + " >>> " + str(data[int(index)][i]) 
+                        RRprint(m)
+                else:
+                    m = i + " >>> " + str(data[int(index)][i]) 
+                    RRprint(m)
+            else:
+                m = i + " >>> " + str(data[int(index)][i]) 
+                RRprint(m)
+        else:
+            m = i + " >>> " + str(data[int(index)][i]) 
+            RRprint(m)
+
+def data_write_t(flags):
+    index = int(flags[0])
+    parameter = flags[1]
+    value = flags[2]
+    data[index][parameter] = value
 
 commands = {
     "data": {
         "GET": {
             "i": data_get_i
+        },
+        "HEAD": {
+            "raw": data_head_raw,
+            "f": data_head_f
+        },
+        "WRITE": {
+            "t": data_write_t
         }
     }
 } 
@@ -225,7 +266,4 @@ while True:
         else:
             RRprint(f">>{raw}<< isnt't a vaild command")
     except Exception as e:
-        if debug:
-            RRprint(f"DEBUG: {e}")
-        else:
-            RRprint("Something went wrong")
+            RRprint(f"Unexpected Error: {e}")
