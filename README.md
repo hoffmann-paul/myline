@@ -18,9 +18,9 @@ If you wanna enter more than one word pur it between "Marks"
 | data POST a | Post the data Array in the data.json file |
 | data inspect struc | Shows a list of all Parameters |
 | data inspect count | Counts all Data Records |
+| net pg uop {url} {port} | Trys to connect to a url on a specific port |
 
 <!--
-| net pg {url} {port} | Trys pinging a URL on a specific Port |
 | ble HEAD devs [raw] [loop] | Scans BLE Signals and shows an list of Name; Local-Name; rssi; tx_power; MAC-Adress; by adding raw it also shows devices where name == None, by adding loop it rescans every Second |
 | app lch {App} | Launches an application configured in cmddata.json |
 | app list | Shows a List of every application configured in cmddata.json |
