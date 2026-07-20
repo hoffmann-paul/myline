@@ -8,6 +8,7 @@ import datetime
 import subprocess
 import argparse
 import platform
+import sys
 
 # SETUP VARIABLES
 file_cmddata_json = 'cmddata.json'
@@ -401,15 +402,15 @@ while True:
                         else:
                             Gprint("No Unsaved Changes")
                             RRprint("Kill MyLine...")
-                            quit()
+                            sys.exit()
                     elif answer == "N" or answer == "n":
                         RRprint("Kill MyLine...")
-                        quit()
+                        sys.exit()
                     else:
                         RRprint(f">>{answer}<< isnt's a valid input")
                 elif cmd[2] == "force":
                     RRprint("Kill MyLine...")
-                    quit()
+                    sys.exit()
                 else:
                     RRprint(f">>{raw}<< isnt't a vaild command")
             else:
