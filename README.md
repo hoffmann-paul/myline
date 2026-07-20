@@ -11,8 +11,9 @@ For a list of all commands type: `myline help`
 If you wanna enter more than one word pur it between "Marks"
 | Command | Description |
 | ----- | ----- |
-| data GET i {parameter} {value} | Shows and index of a Data Record by entering a parameter and a value |
-| data HEAD {i} [raw] | Shows all filled data for an index (i), by adding raw it also shows data that is "" or 0 |
+| data GET i {parameter} {value} | Shows and index of a Data Record by entering a parameter and a value. parameter == valur do not repliy True also work when parameter contains value |
+
+<!--| data HEAD {i} [raw] | Shows all filled data for an index (i), by adding raw it also shows data that is "" or 0 |
 | data WRITE {i} {parameter} {value} | Overwrites a Value for a Parameter at an index temporary |
 | data POST | Saves tha data Array in the data.json file |
 | data inspect struc | Shows all Parameters |
@@ -25,7 +26,7 @@ If you wanna enter more than one word pur it between "Marks"
 | myline info | Shows Link to GitHub page and MIT Licence |
 | myline debug | Toggle the debug mode, if Debug mode is enabled it shows an error message when crashing instead of "Something went wrong" |
 | myline check changes | Checks if there are some unsaved changes |
-| myline kill [force] | Kills the Python Programm, by adding force it dont ask if it should check for unsaved changes |
+| myline kill [force] | Kills the Python Programm, by adding force it dont ask if it should check for unsaved changes |-->
 ## Command Line Options
 | Flag | Description |
 | ----- | ----- |
