@@ -10,6 +10,8 @@ import argparse
 import platform
 import sys
 
+debug = False
+
 # SETUP VARIABLES
 file_cmddata_json = 'cmddata.json'
 file_company_ids_json = 'company_ids.json'
@@ -367,6 +369,7 @@ while True:
                 YYprint("app list")
                 YYprint("myline help")
                 YYprint("myline info")
+                YYprint("myline debug")
                 YYprint("myline check changes")
                 YYprint("myline kill [force]")
             elif cmd[1] == "info":
@@ -413,11 +416,21 @@ while True:
                     sys.exit()
                 else:
                     RRprint(f">>{raw}<< isnt't a vaild command")
+            elif cmd[1] == "debug":
+                if debug:
+                    debug = False
+                    Yprint("Debug mode is now deactivated")
+                else:
+                    debug = True
+                    Yprint("Debug mode is now activated")
             else:
                 RRprint(f">>{raw}<< isnt't a vaild command")
         else:
             RRprint(f">>{raw}<< isnt't a vaild command")
-    except Exception:
-        RRprint("Something went wrong")
+    except Exception as e:
+        if debug:
+            RRprint(f"DEBUG: {e}")
+        else:
+            RRprint("Something went wrong")
 
     Wprint("")

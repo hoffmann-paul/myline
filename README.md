@@ -23,6 +23,7 @@ If you wanna enter more than one word pur it between "Marks"
 | app list | Shows a List of every application configured in cmddata.json |
 | myline help | Shows a list of all Commands |
 | myline info | Shows Link to GitHub page and MIT Licence |
+| myline debug | Toggle the debug mode, if Debug mode is enabled it shows an error message when crashing instead of "Something went wrong" |
 | myline check changes | Checks if there are some unsaved changes |
 | myline kill [force] | Kills the Python Programm, by adding force it dont ask if it should check for unsaved changes |
 ## Command Line Options
