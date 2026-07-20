@@ -239,6 +239,13 @@ def data_write_t(flags):
     parameter = flags[1]
     value = flags[2]
     data[index][parameter] = value
+    
+def data_inspect_struc(flags):
+    for i in data[0]:
+        Wprint(i)
+
+def data_inspect_count(flags):
+    Wprint(f"Counted {len(data)} Objects in data")
 
 commands = {
     "data": {
@@ -254,6 +261,10 @@ commands = {
         },
         "POST": {
             "a": data_post_a # a all
+        },
+        "inspect": {
+            "struc": data_inspect_struc,
+            "count": data_inspect_count
         }
     }
 } 
