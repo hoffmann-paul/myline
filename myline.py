@@ -342,6 +342,9 @@ while True:
                     RRprint(f"MyLine doesn't support an Application named >>{cmd[2]}<<")
                 else:
                     launch_app(application)
+            elif cmd[1] == "list":
+                for i in saves[0]["Applications"]:
+                    Wprint(saves[0]["Applications"][i])
             else:
                 RRprint(f">>{raw}<< isnt't a vaild command")
         elif cmd[0] == "myline":
@@ -360,6 +363,7 @@ while True:
                 YYprint("net pg {url} {port}")
                 YYprint("ble HEAD devs [raw] [loop]")
                 YYprint("app lch {App}")
+                YYprint("app list")
                 YYprint("myline help")
                 YYprint("myline info")
                 YYprint("myline check changes")
