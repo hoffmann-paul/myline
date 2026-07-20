@@ -16,10 +16,10 @@ If you wanna enter more than one word pur it between "Marks"
 | data HEAD raw {index} | Shows all data for an index |
 | data WRITE t {index} {parameter} {value} | Overwrites a Value for a Parameter at an index temporary |
 | data POST a | Post the data Array in the data.json file |
+| data inspect struc | Shows a list of all Parameters |
+| data inspect count | Counts all Data Records |
 
 <!--
-| data inspect struc | Shows all Parameters |
-| data inspect count | Counts all Data Records |
 | net pg {url} {port} | Trys pinging a URL on a specific Port |
 | ble HEAD devs [raw] [loop] | Scans BLE Signals and shows an list of Name; Local-Name; rssi; tx_power; MAC-Adress; by adding raw it also shows devices where name == None, by adding loop it rescans every Second |
 | app lch {App} | Launches an application configured in cmddata.json |
