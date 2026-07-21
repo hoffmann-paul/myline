@@ -85,7 +85,7 @@ except Exception:
 
 Wprint("")
 Gprint("Started MyLine with Success")
-Wprint("Type \"myline help\" for commands")
+Wprint("Type \"myline help c\" for commands")
 Wprint("")
 now = datetime.datetime.now()
 Wprint(f"Now is: {now}")
@@ -267,6 +267,17 @@ def ble_head_devs(flags):
     else:
         asyncio.run(scan(5.0, show_none))
 
+def myline_help_c(flags):
+    YYprint("For Explanations visit the Github page:")
+    YYprint("github.com/hoffmann-paul/myline/blob/main/README.md")
+    YYprint("")
+    YYprint("All Commands:")
+
+    for i in commands:
+        for j in commands[i]:
+            for k in commands[i][j]:
+                YYprint(f"{i} {j} {k}")
+
 commands = {
     "data": {
         "GET": {
@@ -295,6 +306,11 @@ commands = {
     "ble": {
         "HEAD": {
             "devs": ble_head_devs
+        }
+    },
+    "myline": {
+        "help": {
+            "c": myline_help_c
         }
     }
 } 
