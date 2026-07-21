@@ -291,6 +291,10 @@ def myline_kill_force(flags):
     RRprint("Kill MyLine...")
     sys.exit()
 
+def data_write_post(flags):
+    data_write_t(flags)
+    data_post_a(flags)
+
 commands = {
     "data": {
         "GET": {
@@ -301,7 +305,8 @@ commands = {
             "f": data_head_f 
         },
         "WRITE": {
-            "t": data_write_t
+            "t": data_write_t,
+            "POST": data_write_post
         },
         "POST": {
             "a": data_post_a
