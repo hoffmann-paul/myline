@@ -162,26 +162,6 @@ def wait_for_stop(stop_event):
     input() 
     stop_event.set()
 
-def launch_app(application):
-    system = platform.system()
-    try:
-        if system == "Darwin":
-            subprocess.run(["open", "-a", application], check=True)
-        elif system == "Windows":
-            # 'start' is a cmd.exe builtin, not a standalone executable,
-            # so it has to go through the shell. The empty "" is the
-            # window-title argument that 'start' expects before the target.
-            subprocess.run(f'start "" "{application}"', shell=True, check=True)
-        elif system == "Linux":
-            # run the # executable directly (it needs to be in PATH).
-            subprocess.run([application], check=True)
-        else:
-            Rprint(f"Unsupported operating system: {system}")
-            return
-        Gprint(f"Launched >>{application}<<")
-    except Exception as e:
-        RRprint(f"Couldn't launch >>{application}<< on {system}: {e}")
-
 def data_get_i(flags):
     parameter = flags[0]
     value = flags[1]
