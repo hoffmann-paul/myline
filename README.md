@@ -22,11 +22,10 @@ If you wanna enter more than one word pur it between "Marks"
 | ble HEAD devs [raw] [loop] | Scans BLE Signals and shows an list of Name; Local-Name; rssi; tx_power; MAC-Adress; by adding raw it also shows devices where name == None, by adding loop it rescans every Second |
 | myline help c | Shows a list of all Commands |
 | myline help info | Shows Link to GitHub page and MIT Licence |
-
-<!--
-| myline debug | Toggle the debug mode, if Debug mode is enabled it shows an error message when crashing instead of "Something went wrong" |
 | myline check changes | Checks if there are some unsaved changes |
-| myline kill [force] | Kills the Python Programm, by adding force it dont ask if it should check for unsaved changes |-->
+| myline kill check | Checks if there are some unsaved changes, if yes than nothing happens, but if there are no unseved changes MyLine is killed |
+| myline kill force | Kills MyLine |
+
 ## Command Line Options
 | Flag | Description |
 | ----- | ----- |
