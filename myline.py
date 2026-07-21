@@ -256,7 +256,7 @@ def ble_head_devs(flags):
     else:
         show_none = False
 
-    if flags[3] == "loop" or flags[4] == "loop":
+    if flags[0] == "loop" or flags[1] == "loop":
         stop_event = threading.Event()
         listener = threading.Thread(target=wait_for_stop, args=(stop_event,), daemon=True)
         listener.start()
@@ -311,6 +311,10 @@ while True:
         sub_keyword = parts[1]
         sub_sub_keyword = parts[2]
         flags = parts[3:]
+        flags.append("")
+        flags.append("")
+        flags.append("")
+        flags.append("")
 
         if keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
