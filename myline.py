@@ -10,13 +10,16 @@ import argparse
 import platform
 import sys
 
-# SETUP VARIABLES
+# --- SETUP VARIABLES ---
 file_cmddata_json = 'cmddata.json'
 file_company_ids_json = 'company_ids.json'
 
 # --- Configurable data.json path ---
 # Precedence: CLI argument > default
 DEFAULT_DATA_JSON = 'Datensätze/data.json'
+
+# --- System Variables ---
+version = "v1.0.0"
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -31,7 +34,7 @@ file_data_json = args.data_file
 
 def _prefix():
     now = datetime.datetime.now()
-    return f"@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}]"
+    return f"@MyLine {version} [{now.strftime('%H:%M:%S')}]"
  
 
 def Gprint(string):
@@ -366,7 +369,7 @@ commands = {
 
 while True:
     now = datetime.datetime.now()
-    print(f"\033[34m@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}] >>> ", end="")
+    print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] >>> ", end="")
     raw = input()
     
     # Dispatcher
