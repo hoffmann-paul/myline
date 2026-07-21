@@ -351,24 +351,22 @@ while True:
         parts = shlex.split(raw)
         if not parts:
             continue
-        # Pad incomplete commands so "data" / "data GET" don't IndexError (#19)
+        # Pad incomplete commands so "data" / "data GET" don't IndexError
         while len(parts) < 3:
             parts.append("")
         keyword = parts[0]
         sub_keyword = parts[1]
         sub_sub_keyword = parts[2]
         flags = parts[3:]
-        flags.append("")
-        flags.append("")
-        flags.append("")
-        flags.append("")
+        while len(flags) < 5:
+                flags.append("")
 
         if keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
         else:
             RRprint(f">>{raw}<< isnt't a vaild command")
     except (ValueError, IndexError, KeyError, TypeError) as e:
-            # Normal user input mistakes — don't ask for a GitHub issue (#20)
+            # Normal user input mistakes — don't ask for a GitHub issue 
             RRprint(f"Input error: {e}")
     except Exception as e:
             RRprint(f"Unexpected Error: {e}")
