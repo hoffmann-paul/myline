@@ -20,6 +20,7 @@ DEFAULT_DATA_JSON = 'Datensätze/data.json'
 
 # --- System Variables ---
 version = "v1.0.0"
+data = []
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -106,11 +107,38 @@ except Exception:
     Rprint("An error occurred while trying to read company_ids.json")
     company_ids = []
 
+Wprint("Loading data_temp.json...")
+try:
+    with open('data_temp.json', 'r') as file:
+        temp_data = json.load(file)
+        Gprint("Loaded temp_data.json with Success.")
+except Exception:
+    failload = True
+    temp_data = 0
+    Rprint(f"An Error corrupted while trying reading data_temp.json")
+
+def check_temp_saves():
+    if temp_data != 0:
+        if temp_data == []:
+            return False
+        else:
+            return True
+    else:
+        Rprint("data_temp.json is missing")
+
 Wprint("")
 if not failload:
     Gprint("Started MyLine successfully")
 else:
     Yprint("Started MyLine with missing source files")
+Wprint("")
+Wprint("Checking for restorable Changes...")
+if check_temp_saves():
+    Yprint("Found restorable Changes")
+    Yprint("Type \"myline restore changes\" to resore Changes from last Session")
+elif not check_temp_saves():
+    Gprint("No restorable Changes Found")
+Wprint("")
 Wprint("Type \"myline help c\" for commands")
 Wprint("")
 now = datetime.datetime.now()
@@ -188,6 +216,21 @@ def wait_for_stop(stop_event):
     input() 
     stop_event.set()
 
+def auto_save():
+    try:
+        with open('data_temp.json', 'w') as file:
+            json.dump(data, file)
+    except Exception:
+        Rprint("Failed Auto-Save")
+
+def myline_restore_changes(flags):
+    Yprint("Restoring last Session")
+    try:
+        global data
+        data = temp_data
+    except Exception as e:
+        Yprint(f"Can't Restore Changes: {e}")
+
 def data_get_i(flags):
     parameter = flags[0]
     value = flags[1]
@@ -237,6 +280,12 @@ def data_post_a(flags):
     try:
         with open(file_data_json, 'w') as file:
             json.dump(data, file)
+            # Clear data_temp.json
+            try:
+                with open('data_temp.json', 'w') as file:
+                    json.dump([], file)
+            except Exception:
+                Rprint("Failed clearing Auto-Save Cache.")
     except Exception:
         RRprint("Can't POST data as data.json")
 
@@ -245,6 +294,7 @@ def data_write_t(flags):
     parameter = flags[1]
     value = flags[2]
     data[index][parameter] = value
+    auto_save()
     
 def data_inspect_struc(flags):
     for i in data[0]:
@@ -359,6 +409,9 @@ commands = {
         },
         "check": {
             "changes": myline_check_changes
+        },
+        "restore": {
+            "changes": myline_restore_changes
         },
         "kill": {
             "check": myline_kill_check,
