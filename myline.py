@@ -79,38 +79,38 @@ Wprint("Loading data.json...")
 try:
     with open(file_data_json, 'r') as file:
         data = json.load(file)
-        Gprint("Loaded data.json with Success.")
+        Gprint("Loaded data.json successfully.")
 except Exception:
     failload = True
-    Rprint("An Error corrupted while trying reading data.json")
+    Rprint("An error occurred while trying to read data.json")
     data = []
 
 Wprint("Loading cmddata.json...")
 try:
     with open(file_cmddata_json, 'r') as file:
         saves = json.load(file)
-        Gprint("Loaded cmddata.json with Success.")
+        Gprint("Loaded cmddata.json successfully.")
 except Exception:
     failload = True
-    Rprint("An Error corrupted while trying reading cmddata.json")
+    Rprint("An error occurred while trying to read cmddata.json")
     saves = []
 
-Wprint("Loading compandy_id.json...")
+Wprint("Loading company_ids.json...")
 try:
     with open(file_company_ids_json, 'r') as file:
         company_ids_raw = json.load(file)
         company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
-        Gprint("Loaded company_ids.json with Success.")
+        Gprint("Loaded company_ids.json successfully.")
 except Exception:
     failload = True
-    Rprint("An Error corrupted while trying reading company_ids.json")
+    Rprint("An error occurred while trying to read company_ids.json")
     company_ids = []
 
 Wprint("")
 if not failload:
-    Gprint("Started MyLine with Success")
+    Gprint("Started MyLine successfully")
 else:
-    Yprint("Started MyLine with missing Sourcefiles")
+    Yprint("Started MyLine with missing source files")
 Wprint("Type \"myline help c\" for commands")
 Wprint("")
 now = datetime.datetime.now()
@@ -143,7 +143,7 @@ def test_connection(host="8.8.8.8", port=53, timeout=3):
             try:
                 socket.setdefaulttimeout(timeout)
                 socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-                Gprint(f"Success for pinging {host} on {port}")
+                Gprint(f"Successfully pinged {host} on {port}")
             except Exception as e:
                 Rprint(f"can't reach {host} error: {e}")
 
