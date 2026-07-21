@@ -6,7 +6,7 @@ MyLine is my own command-line-tool
 3. Run MyLine: `python myline.py`
    - By default it looks for the data file at `Datensätze/data.json`
    - To use a different path, pass `--data-file`, e.g. `python myline.py --data-file path/to/data.json`
-For a list of all commands type: `myline help`
+For a list of all commands type: `myline help c`
 ## Commands
 If you wanna enter more than one word pur it between "Marks"
 | Command | Description |
