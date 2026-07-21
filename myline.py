@@ -10,8 +10,6 @@ import argparse
 import platform
 import sys
 
-debug = False
-
 # SETUP VARIABLES
 file_cmddata_json = 'cmddata.json'
 file_company_ids_json = 'company_ids.json'
@@ -87,7 +85,7 @@ except Exception:
 
 Wprint("")
 Gprint("Started MyLine with Success")
-Wprint("Type \"myline help\" for commands")
+Wprint("Type \"myline help c\" for commands")
 Wprint("")
 now = datetime.datetime.now()
 Wprint(f"Now is: {now}")
@@ -184,253 +182,205 @@ def launch_app(application):
     except Exception as e:
         RRprint(f"Couldn't launch >>{application}<< on {system}: {e}")
 
+def data_get_i(flags):
+    parameter = flags[0]
+    value = flags[1]
+    found = False
+    try:
+        for i in data:
+            field_value = i.get(parameter, "")
+            if isinstance(field_value, str) and value.lower() in field_value.lower():
+                found = True
+                Gprint("found >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<< under index " + str(data.index(i)) + " where value is \"" + str(data[data.index(i)][parameter]) + "\"")
+        if not found:
+            Rprint("nothing found under >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<<")
+    except KeyError:
+        Rprint("There is no parameter called >>" + parameter + "<<")
+
+def data_head_f(flags):
+    index = flags[0]
+    for i in data[int(index)]:
+        if str(data[int(index)][i]) != "":
+            if data[int(index)][i] != 0:
+                m = i + " >>> " + str(data[int(index)][i])
+                GGprint(m)
+
+def data_head_raw(flags):
+    index = flags[0]
+    for i in data[int(index)]:
+        if str(data[int(index)][i]) != "":
+            if data[int(index)][i] != 0:
+                if data[int(index)][i] != {}:
+                    if data[int(index)][i] != []:
+                        m = i + " >>> " + str(data[int(index)][i]) 
+                        GGprint(m)
+                    else:
+                        m = i + " >>> " + str(data[int(index)][i]) 
+                        RRprint(m)
+                else:
+                    m = i + " >>> " + str(data[int(index)][i]) 
+                    RRprint(m)
+            else:
+                m = i + " >>> " + str(data[int(index)][i]) 
+                RRprint(m)
+        else:
+            m = i + " >>> " + str(data[int(index)][i]) 
+            RRprint(m)
+
+def data_post_a(flags):
+    try:
+        with open(file_data_json, 'w') as file:
+            json.dump(data, file)
+    except Exception:
+        RRprint("Can't POST data as data.json")
+
+def data_write_t(flags):
+    index = int(flags[0])
+    parameter = flags[1]
+    value = flags[2]
+    data[index][parameter] = value
+    
+def data_inspect_struc(flags):
+    for i in data[0]:
+        Wprint(i)
+
+def data_inspect_count(flags):
+    Wprint(f"Counted {len(data)} Objects in data")
+
+def net_pg_uop(flags):
+    test_connection(flags[0], int(flags[1]))
+
+def ble_head_devs(flags):
+    if flags[0] == "raw":
+        show_none = True
+    else:
+        show_none = False
+
+    if flags[0] == "loop" or flags[1] == "loop":
+        stop_event = threading.Event()
+        listener = threading.Thread(target=wait_for_stop, args=(stop_event,), daemon=True)
+        listener.start()
+
+        while not stop_event.is_set():
+            asyncio.run(scan(1.0, show_none))
+            Wprint("")
+    else:
+        asyncio.run(scan(5.0, show_none))
+
+def myline_help_c(flags):
+    YYprint("For Explanations visit the Github page:")
+    YYprint("github.com/hoffmann-paul/myline/blob/main/README.md")
+    YYprint("")
+    YYprint("All Commands:")
+
+    for i in commands:
+        for j in commands[i]:
+            for k in commands[i][j]:
+                YYprint(f"{i} {j} {k}")
+
+def myline_help_info(flags):
+    Wprint("My Line")
+    Wprint("github.com/hoffmann-paul/myline")
+    Wprint("")
+    Wprint("MIT License")
+    Wprint("Copyright (c) 2026 Paul Hoffmann")
+    Wprint("Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:")
+    Wprint("The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.")
+    Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
+
+def myline_check_changes(flags):
+    with open(file_data_json, 'r') as file:
+        saved_data = json.load(file)
+    if saved_data != data:
+        Rprint("Unsaved Changes between data and data.json")
+    else:
+        Gprint("No Unsaved Changes")
+
+def myline_kill_check(flags):
+    with open(file_data_json, 'r') as file:
+        saved_data = json.load(file)
+    if saved_data != data:
+        Rprint("Unsaved Changes between data and data.json")
+        Rprint("Killing process is canceld...")
+    else:
+        Gprint("No Unsaved Changes")
+        RRprint("Kill MyLine...")
+        sys.exit()
+
+def myline_kill_force(flags):
+    RRprint("Kill MyLine...")
+    sys.exit()
+
+commands = {
+    "data": {
+        "GET": {
+            "i": data_get_i # i index
+        },
+        "HEAD": {
+            "raw": data_head_raw,
+            "f": data_head_f #f filled
+        },
+        "WRITE": {
+            "t": data_write_t # mby expant from t= temp. and p= wirte and instant post
+        },
+        "POST": {
+            "a": data_post_a # a all
+        },
+        "inspect": {
+            "struc": data_inspect_struc,
+            "count": data_inspect_count
+        }
+    },
+    "net": {
+        "pg": {
+            "uop": net_pg_uop # Url On Port
+        }
+    },
+    "ble": {
+        "HEAD": {
+            "devs": ble_head_devs
+        }
+    },
+    "myline": {
+        "help": {
+            "c": myline_help_c,
+            "info": myline_help_info
+        },
+        "check": {
+            "changes": myline_check_changes
+        },
+        "kill": {
+            "check": myline_kill_check,
+            "force": myline_kill_force
+        }
+    }
+} 
+
 while True:
     now = datetime.datetime.now()
     print(f"\033[34m@MyLine v1.0.0 [{now.strftime('%H:%M:%S')}] >>> ", end="")
     raw = input()
-
-    cmd = []
-    cmd = shlex.split(raw)
     
-    cmd += [""] * 12
-
+    # Dispatcher
     try:
-        if cmd[0] == "data":
-            if cmd[1] == "GET":
-                if cmd[2] == "i":
-                    parameter = cmd[3]
-                    if cmd[4] == "c":
-                        value = cmd[5]
-                        found = False
-                        try:
-                            for i in data:
-                                field_value = i.get(parameter, "")
-                                if isinstance(field_value, str) and value.lower() in field_value.lower():
-                                    found = True
-                                    Gprint("found >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<< under index " + str(data.index(i)) + " where value is \"" + str(data[data.index(i)][parameter]) + "\"")
-                            if not found:
-                                Rprint("nothing found under >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"")
-                        except KeyError:
-                            Rprint("There is no parameter called >>" + parameter + "<<")
-                    else:
-                        value = cmd[4]
-                        found = False
-                        try:
-                            for i in data:
-                                if i[parameter] == value:
-                                    found = True
-                                    Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
-                                else:
-                                    # Only try integer comparison if the field value is an integer
-                                    field_value = i[parameter]
-                                    if isinstance(field_value, int):
-                                        try:
-                                            int_value = int(value)
-                                            if field_value == int_value:
-                                                found = True
-                                                Gprint("found >>\"" + parameter + "\" == " + "\"" + str(value) + "\"<< under index " + str(data.index(i)))
-                                            else:
-                                                if not found:
-                                                    found = False
-                                        except ValueError:
-                                            Rprint(f"Value '{value}' cannot be compared as integer for parameter '{parameter}'")
-                                            break
-                        except KeyError:
-                            Rprint("There is no parameter called >>" + parameter +"<<")
-                        else:
-                            if not found:
-                                Rprint("nothing found under >>\"" + parameter + "\" == " + "\"" + str(value) + "\"")
-                else:
-                    RRprint(f">>{raw}<< isnt't a vaild command")
-            elif cmd[1] == "HEAD":
-                index = int(cmd[2])
-                flags = cmd[3:]
-                try:
-                    if "raw" in flags:
-                        for i in data[int(index)]:
-                            if str(data[int(index)][i]) != "":
-                                if data[int(index)][i] != 0:
-                                    if data[int(index)][i] != {}:
-                                        if data[int(index)][i] != []:
-                                            m = i + " >>> " + str(data[int(index)][i]) 
-                                            GGprint(m)
-                                        else:
-                                            m = i + " >>> " + str(data[int(index)][i]) 
-                                            RRprint(m)
-                                    else:
-                                        m = i + " >>> " + str(data[int(index)][i]) 
-                                        RRprint(m)
-                                else:
-                                    m = i + " >>> " + str(data[int(index)][i]) 
-                                    RRprint(m)
-                            else:
-                                m = i + " >>> " + str(data[int(index)][i]) 
-                                RRprint(m)
-
-                    else:
-                        for i in data[int(index)]:
-                            if str(data[int(index)][i]) != "":
-                                if data[int(index)][i] != 0:
-                                    m = i + " >>> " + str(data[int(index)][i])
-                                    GGprint(m)
-                except ValueError:
-                    RRprint("Index muss be and Integer")
-                except IndexError:
-                    RRprint("This Index is out of Range")
-            elif cmd[1] == "WRITE":
-                index = int(cmd[2])
-                parameter = cmd[3]
-                value = cmd[4]
-                data[index][parameter] = value
-            elif cmd[1] == "POST":
-                try:
-                    with open(file_data_json, 'w') as file:
-                        json.dump(data, file)
-                except Exception:
-                    RRprint("Can't POST data as data.json")
-            elif cmd[1] == "inspect":
-                if cmd[2] == "struc":
-                    for i in data[0]:
-                        Wprint(i)
-                elif cmd[2] == "count":
-                    Wprint(f"Counted {len(data)} Objects in data")
-                else:
-                    RRprint(f">>{raw}<< isnt't a vaild command")
-            else:
-                RRprint(f">>{raw}<< isnt't a vaild command")
-        elif cmd[0] == "net":
-            if cmd[1] == "pg":
-                url = cmd[2]
-                port = int(cmd[3])
-
-                test_connection(url, port)
-            elif cmd[1] == "GET":
-                if cmd[2] == "ip":
-                    ip = get_local_ip()
-                    if ip != False:
-                        Gprint(ip)
-                    else:
-                        Rprint("No active connection found")
-                else:
-                    RRprint(f">>{raw}<< isnt't a vaild command")
-            else:
-                RRprint(f">>{raw}<< isnt't a vaild command")
-        elif cmd[0] == "ble":
-            if cmd[1] == "HEAD":
-                if cmd[2] == "devs":
-                    if cmd[3] == "raw":
-                        show_none = True
-                    else:
-                        show_none = False
-                    
-                    if cmd[3] == "loop" or cmd[4] == "loop":
-                        stop_event = threading.Event()
-                        listener = threading.Thread(target=wait_for_stop, args=(stop_event,), daemon=True)
-                        listener.start()
-
-                        while not stop_event.is_set():
-                            asyncio.run(scan(1.0, show_none))
-                            Wprint("")
-                    else:
-                        asyncio.run(scan(5.0, show_none))
-                else:
-                    RRprint(f">>{raw}<< isnt't a vaild command")
-            else:
-                RRprint(f">>{raw}<< isnt't a vaild command")
-        elif cmd[0] == "app":
-            if cmd[1] == "lch":
-                try:
-                    application = saves[0]["Applications"][cmd[2]]
-                except (KeyError, IndexError):
-                    RRprint(f"MyLine doesn't support an Application named >>{cmd[2]}<<")
-                else:
-                    launch_app(application)
-            elif cmd[1] == "list":
-                for i in saves[0]["Applications"]:
-                    Wprint(saves[0]["Applications"][i])
-            else:
-                RRprint(f">>{raw}<< isnt't a vaild command")
-        elif cmd[0] == "myline":
-            if cmd[1] == "help":
-                YYprint("For Explanations visit the Github page:")
-                YYprint("github.com/hoffmann-paul/myline/blob/main/README.md")
-                YYprint("")
-                YYprint("All Commands:")
-                YYprint("data GET i {parameter} {value}")
-                YYprint("data GET i {parameter} c {value}")
-                YYprint("data HEAD {i} [raw]")
-                YYprint("data WRITE {i} \"{parameter}\" \"{value}\"")
-                YYprint("data POST")
-                YYprint("data inspect struc")
-                YYprint("data inspect count")
-                YYprint("net pg {url} {port}")
-                YYprint("ble HEAD devs [raw] [loop]")
-                YYprint("app lch {App}")
-                YYprint("app list")
-                YYprint("myline help")
-                YYprint("myline info")
-                YYprint("myline debug")
-                YYprint("myline check changes")
-                YYprint("myline kill [force]")
-            elif cmd[1] == "info":
-                Wprint("My Line")
-                Wprint("github.com/hoffmann-paul/myline")
-                Wprint("")
-                Wprint("MIT License")
-                Wprint("Copyright (c) 2026 Paul Hoffmann")
-                Wprint("Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:")
-                Wprint("The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.")
-                Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
-            elif cmd[1] == "check":
-                if cmd[2] == "changes":
-                    with open(file_data_json, 'r') as file:
-                        saved_data = json.load(file)
-                    if saved_data != data:
-                        Rprint("Unsaved Changes between data and data.json")
-                    else:
-                        Gprint("No Unsaved Changes")
-                else:
-                    RRprint(f">>{raw}<< isnt't a vaild command")
-            elif cmd[1] == "kill":
-                if cmd[2] != "force":
-                    Wprint("Check for unsaved change before killing MyLine")
-                    Bprint("[Y/N]")
-                    answer = input()
-                    if answer == "Y" or answer == "y":
-                        with open(file_data_json, 'r') as file:
-                            saved_data = json.load(file)
-                        if saved_data != data:
-                            Rprint("Unsaved Changes between data and data.json")
-                            Rprint("Killing process is canceld...")
-                        else:
-                            Gprint("No Unsaved Changes")
-                            RRprint("Kill MyLine...")
-                            sys.exit()
-                    elif answer == "N" or answer == "n":
-                        RRprint("Kill MyLine...")
-                        sys.exit()
-                    else:
-                        RRprint(f">>{answer}<< isnt's a valid input")
-                elif cmd[2] == "force":
-                    RRprint("Kill MyLine...")
-                    sys.exit()
-                else:
-                    RRprint(f">>{raw}<< isnt't a vaild command")
-            elif cmd[1] == "debug":
-                if debug:
-                    debug = False
-                    Yprint("Debug mode is now deactivated")
-                else:
-                    debug = True
-                    Yprint("Debug mode is now activated")
-            else:
-                RRprint(f">>{raw}<< isnt't a vaild command")
+        parts = shlex.split(raw)
+        if not parts:
+            continue
         else:
-            RRprint(f">>{raw}<< isnt't a vaild command")
+            keyword = parts[0]
+            sub_keyword = parts[1]
+            sub_sub_keyword = parts[2]
+            flags = parts[3:]
+            flags.append("")
+            flags.append("")
+            flags.append("")
+            flags.append("")
+
+            if keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
+                commands[keyword][sub_keyword][sub_sub_keyword](flags)
+            else:
+                RRprint(f">>{raw}<< isnt't a vaild command")
     except Exception as e:
-        if debug:
-            RRprint(f"DEBUG: {e}")
-        else:
-            RRprint("Something went wrong")
-
+            RRprint(f"Unexpected Error: {e}")
+            RRprint(f"Please open up a Issue on Github")
     Wprint("")
