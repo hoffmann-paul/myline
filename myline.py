@@ -11,12 +11,12 @@ import platform
 import sys
 
 # --- SETUP VARIABLES ---
-file_cmddata_json = 'cmddata.json'
-file_company_ids_json = 'company_ids.json'
+file_cmddata_json = 'storage/cmddata.json'
+file_company_ids_json = 'storage/company_ids.json'
 
 # --- Configurable data.json path ---
 # Precedence: CLI argument > default
-DEFAULT_DATA_JSON = 'Datensätze/data.json'
+DEFAULT_DATA_JSON = 'storage/data.json'
 
 # --- System Variables ---
 version = "v1.0.0"
@@ -102,14 +102,14 @@ try:
         company_ids_raw = json.load(file)
         company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
         Gprint("Loaded company_ids.json successfully.")
-except Exception:
+except Exception as e:
     failload = True
     Rprint("An error occurred while trying to read company_ids.json")
     company_ids = []
 
 Wprint("Loading data_temp.json...")
 try:
-    with open('data_temp.json', 'r') as file:
+    with open('storage/data_temp.json', 'r') as file:
         temp_data = json.load(file)
         Gprint("Loaded temp_data.json with Success.")
 except Exception:
@@ -218,7 +218,7 @@ def wait_for_stop(stop_event):
 
 def auto_save():
     try:
-        with open('data_temp.json', 'w') as file:
+        with open('storage/data_temp.json', 'w') as file:
             json.dump(data, file)
     except Exception:
         Rprint("Failed Auto-Save")
@@ -282,7 +282,7 @@ def data_post_a(flags):
             json.dump(data, file)
             # Clear data_temp.json
             try:
-                with open('data_temp.json', 'w') as file:
+                with open('storage/data_temp.json', 'w') as file:
                     json.dump([], file)
             except Exception:
                 Rprint("Failed clearing Auto-Save Cache.")
