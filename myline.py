@@ -70,21 +70,44 @@ Wprint("")
 Wprint(f"Using data file: {file_data_json}")
 Wprint("")
 
+failload = False
+
+Wprint("Loading data.json...")
 try:
     with open(file_data_json, 'r') as file:
         data = json.load(file)
+        Gprint("Loaded data.json with Success.")
+except Exception:
+    failload = True
+    Rprint("An Error corrupted while trying reading data.json")
+    data = []
+
+Wprint("Loading cmddata.json...")
+try:
     with open(file_cmddata_json, 'r') as file:
         saves = json.load(file)
+        Gprint("Loaded cmddata.json with Success.")
+except Exception:
+    failload = True
+    Rprint("An Error corrupted while trying reading cmddata.json")
+    saves = []
+
+Wprint("Loading compandy_id.json...")
+try:
     with open(file_company_ids_json, 'r') as file:
         company_ids_raw = json.load(file)
-
-    company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
-    Gprint("All Source Files loaded")
+        company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
+        Gprint("Loaded company_ids.json with Success.")
 except Exception:
-    Rprint("An Error corrupted while trying reading source files")
+    failload = True
+    Rprint("An Error corrupted while trying reading company_ids.json")
+    company_ids = []
 
 Wprint("")
-Gprint("Started MyLine with Success")
+if not failload:
+    Gprint("Started MyLine with Success")
+else:
+    Yprint("Started MyLine with missing Sourcefiles")
 Wprint("Type \"myline help c\" for commands")
 Wprint("")
 now = datetime.datetime.now()
