@@ -423,7 +423,7 @@ def data_card_new(flags):
     data.append(new_card)
 
 def data_card_delete(flags):
-    ...
+    data.pop(int(flags[0]))
 
 commands = {
     "data": {
