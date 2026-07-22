@@ -10,15 +10,13 @@ import argparse
 import platform
 import sys
 
-# --- SETUP VARIABLES ---
-file_cmddata_json = 'storage/cmddata.json'
-file_company_ids_json = 'storage/company_ids.json'
-file_cmdhistory_json = 'storage/cmdhistory.json'
-file_data_temp_json = 'storage/data_temp.json'
-
-# --- Configurable data.json path ---
-# Precedence: CLI argument > default
+# --- SETUP VARIABLES (defaults; overridable via CLI) ---
+# Precedence for each path: CLI argument > default under storage/
 DEFAULT_DATA_JSON = 'storage/data.json'
+DEFAULT_CMDDATA_JSON = 'storage/cmddata.json'
+DEFAULT_COMPANY_IDS_JSON = 'storage/company_ids.json'
+DEFAULT_CMDHISTORY_JSON = 'storage/cmdhistory.json'
+DEFAULT_DATA_TEMP_JSON = 'storage/data_temp.json'
 
 # --- System Variables ---
 version = "v1.0.0"
@@ -30,11 +28,39 @@ parser.add_argument(
     "--data-file",
     dest="data_file",
     default=DEFAULT_DATA_JSON,
-    help="Path to the data.json file (defaults to '%(default)s')"
+    help="Path to the data.json file (defaults to '%(default)s')",
+)
+parser.add_argument(
+    "--cmddata-file",
+    dest="cmddata_file",
+    default=DEFAULT_CMDDATA_JSON,
+    help="Path to the cmddata.json file (defaults to '%(default)s')",
+)
+parser.add_argument(
+    "--company-ids-file",
+    dest="company_ids_file",
+    default=DEFAULT_COMPANY_IDS_JSON,
+    help="Path to the company_ids.json file (defaults to '%(default)s')",
+)
+parser.add_argument(
+    "--cmdhistory-file",
+    dest="cmdhistory_file",
+    default=DEFAULT_CMDHISTORY_JSON,
+    help="Path to the cmdhistory.json file (defaults to '%(default)s')",
+)
+parser.add_argument(
+    "--data-temp-file",
+    dest="data_temp_file",
+    default=DEFAULT_DATA_TEMP_JSON,
+    help="Path to the data_temp.json auto-save file (defaults to '%(default)s')",
 )
 args = parser.parse_args()
 
 file_data_json = args.data_file
+file_cmddata_json = args.cmddata_file
+file_company_ids_json = args.company_ids_file
+file_cmdhistory_json = args.cmdhistory_file
+file_data_temp_json = args.data_temp_file
 
 def _prefix():
     now = datetime.datetime.now()
@@ -75,6 +101,10 @@ Wprint("-" * 60)
 Wprint("Started MyLine...")
 Wprint("")
 Wprint(f"Using data file: {file_data_json}")
+Wprint(f"Using cmddata file: {file_cmddata_json}")
+Wprint(f"Using company_ids file: {file_company_ids_json}")
+Wprint(f"Using cmdhistory file: {file_cmdhistory_json}")
+Wprint(f"Using data_temp file: {file_data_temp_json}")
 Wprint("")
 
 failload = False
@@ -122,7 +152,7 @@ except Exception as e:
 
 Wprint("Loading data_temp.json...")
 try:
-    with open('storage/data_temp.json', 'r') as file:
+    with open(file_data_temp_json, 'r') as file:
         temp_data = json.load(file)
         Gprint("Loaded temp_data.json successfully.")
 except Exception:
