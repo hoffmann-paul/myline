@@ -412,7 +412,15 @@ def myline_history_clear(flags):
         RRprint("Can't Clear History")
 
 def data_card_new(flags):
-    ...
+    index = len(data)
+    Wprint(f"Index for new Data Record: {index}")
+    new_card = {}
+    for p in data[0]:
+        print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
+        value = input()
+        entry = {p: value}
+        new_card.update(entry)
+    data.append(new_card)
 
 def data_card_delete(flags):
     ...

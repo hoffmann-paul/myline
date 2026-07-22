@@ -20,7 +20,7 @@ If you want to enter more than one word, put it between "Marks".
 | `data WRITE t {index} {parameter} {value}` | Overwrites a `Value` for a `Parameter` at an `index` temporary |
 | `data WRITE POST {index} {parameter} {value}` | Overwrites a `Value` for a `Parameter` at an `index` and posts it in data.json |
 | `data POST a` | Post the data Array in the data.json file |
-| `data card new` | Creates a new Data Record shows the matching index |
+| `data card new` | Creates a new Data Record shows the matching index and ask for a value for every parameter |
 | `data card delete {index}` | Deletes a Data Record permanent |
 | `data inspect struc` | Shows a list of all Parameters |
 | `data inspect count` | Counts all Data Records |
