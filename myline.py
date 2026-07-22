@@ -411,6 +411,22 @@ def myline_history_clear(flags):
     except Exception:
         RRprint("Can't Clear History")
 
+def data_card_new(flags):
+    index = len(data)
+    Wprint(f"Index for new Data Record: {index}")
+    new_card = {}
+    for p in data[0]:
+        print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
+        value = input()
+        entry = {p: value}
+        new_card.update(entry)
+    data.append(new_card)
+    Gprint(f"Created New Data Record at index {index}")
+
+def data_card_delete(flags):
+    data.pop(int(flags[0]))
+    Rprint("Poped Data Record at index flags[0]")
+
 commands = {
     "data": {
         "GET": {
@@ -426,6 +442,10 @@ commands = {
         },
         "POST": {
             "a": data_post_a
+        },
+        "card": {
+            "new": data_card_new,
+            "delete": data_card_delete
         },
         "inspect": {
             "struc": data_inspect_struc,
