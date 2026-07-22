@@ -189,12 +189,21 @@ def resolve_manufacturer(manufacturer_data):
     return None
 
 def test_connection(host="8.8.8.8", port=53, timeout=3):
+    """Probe TCP connectivity and always close the socket (issue #34)."""
+    sock = None
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        sock.connect((host, port))
+        Gprint(f"Successfully pinged {host} on {port}")
+    except Exception as e:
+        Rprint(f"Can't reach {host}. error: {e}")
+    finally:
+        if sock is not None:
             try:
-                socket.setdefaulttimeout(timeout)
-                socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-                Gprint(f"Successfully pinged {host} on {port}")
-            except Exception as e:
-                Rprint(f"Can't reach {host}. error: {e}")
+                sock.close()
+            except Exception:
+                pass
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
