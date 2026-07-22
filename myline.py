@@ -13,6 +13,7 @@ import sys
 # --- SETUP VARIABLES ---
 file_cmddata_json = 'storage/cmddata.json'
 file_company_ids_json = 'storage/company_ids.json'
+file_cmdhistory_json = 'storage/cmdhistory.json'
 
 # --- Configurable data.json path ---
 # Precedence: CLI argument > default
@@ -21,6 +22,7 @@ DEFAULT_DATA_JSON = 'storage/data.json'
 # --- System Variables ---
 version = "v1.0.0"
 data = []
+history = []
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -85,6 +87,16 @@ except Exception:
     failload = True
     Rprint("An error occurred while trying to read data.json")
     data = []
+
+Wprint("Loading cmdhistory.json...")
+try:
+    with open(file_cmdhistory_json, 'r') as file:
+        history = json.load(file)
+        Gprint("Loaded cmdhistory.json successfully.")
+except Exception:
+    failload = True
+    Rprint("An error occurred while trying to read cmdhistory.json")
+    history = []
 
 Wprint("Loading cmddata.json...")
 try:
@@ -371,6 +383,34 @@ def data_write_post(flags):
     data_write_t(flags)
     data_post_a(flags)
 
+def add_cmd_to_history(cmd):
+    history.append(cmd)
+    try:
+        with open(file_cmdhistory_json, 'w') as file:
+            json.dump(history, file)
+    except Exception:
+        RRprint(f"Can't add {cmd} to cmdhistor.json")
+
+def myline_history_get(flags):
+    if history != []:
+        for i in history:
+            if i.endswith("::valid"):
+                Gprint(i)
+            elif i.endswith("::invalid"):
+                Yprint(i)
+    else:
+        Rprint("No command history found")
+
+def myline_history_clear(flags):
+    global history
+    try:
+        with open(file_cmdhistory_json, 'w') as file:
+            json.dump([], file)
+            history = []
+        Gprint("Command History cleared with Success")
+    except Exception:
+        RRprint("Can't Clear History")
+
 commands = {
     "data": {
         "GET": {
@@ -407,6 +447,10 @@ commands = {
             "c": myline_help_c,
             "info": myline_help_info
         },
+        "history": {
+            "GET": myline_history_get,
+            "clear": myline_history_clear
+        },
         "check": {
             "changes": myline_check_changes
         },
@@ -442,8 +486,10 @@ while True:
 
         if keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
+            add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
         else:
             RRprint(f">>{raw}<< isnt't a vaild command")
+            add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword}::invalid")
     except (ValueError, IndexError, KeyError, TypeError) as e:
             # Normal user input mistakes — don't ask for a GitHub issue 
             RRprint(f"Input error: {e}")

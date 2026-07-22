@@ -26,6 +26,8 @@ If you want to enter more than one word, put it between "Marks".
 | `ble HEAD devs [raw] [loop]` | Scans BLE Signals and shows a list of Name; Local-Name; rssi; tx_power; MAC-Address; by adding `raw` it also shows devices where name == None, by adding `loop` it rescans every Second |
 | `myline help c` | Shows a list of all Commands |
 | `myline help info` | Shows Link to GitHub page and MIT License |
+| `myline history GET` | Shows the full Command History |
+| `myline history clear` | Clears the Command History |
 | `myline check changes` | Checks if there are some unsaved changes |
 | `myline restore changes` | Restore last Sessions Changes |
 | `myline kill check` | Checks if there are some unsaved changes; if yes then nothing happens, but if there are no unsaved changes MyLine is killed |
