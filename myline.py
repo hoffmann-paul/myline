@@ -489,7 +489,7 @@ while True:
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
         else:
             RRprint(f">>{raw}<< isnt't a vaild command")
-            add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword}::invalid")
+            add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::invalid")
     except (ValueError, IndexError, KeyError, TypeError) as e:
             # Normal user input mistakes — don't ask for a GitHub issue 
             RRprint(f"Input error: {e}")
