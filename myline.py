@@ -412,6 +412,7 @@ def data_card_new(flags):
     Wprint(f"Index for new Data Record: {index}")
     new_card = {}
     for p in data[0]:
+        now = datetime.datetime.now()
         print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
         value = input()
         entry = {p: value}
