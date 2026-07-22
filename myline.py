@@ -105,7 +105,7 @@ try:
 except Exception as e:
     failload = True
     Rprint("An error occurred while trying to read company_ids.json")
-    company_ids = []
+    company_ids = {}
 
 Wprint("Loading data_temp.json...")
 try:
