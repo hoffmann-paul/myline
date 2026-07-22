@@ -36,7 +36,7 @@ If you want to enter more than one word, put it between "Marks".
 ## Command Line Options
 | Flag | Description |
 | ----- | ----- |
-| --data-file {path} | Path to the data.json file to load (defaults to `Datensätze/data.json`) |
+| --data-file {path} | Path to the data.json file to load (defaults to `storage/data.json`) |
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
