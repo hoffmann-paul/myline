@@ -124,11 +124,11 @@ Wprint("Loading data_temp.json...")
 try:
     with open('storage/data_temp.json', 'r') as file:
         temp_data = json.load(file)
-        Gprint("Loaded temp_data.json with Success.")
+        Gprint("Loaded temp_data.json successfully.")
 except Exception:
     failload = True
     temp_data = 0
-    Rprint(f"An Error corrupted while trying reading data_temp.json")
+    Rprint(f"An error occurred while trying to read data_temp.json")
 
 def check_temp_saves():
     if temp_data != 0:
@@ -148,7 +148,7 @@ Wprint("")
 Wprint("Checking for restorable Changes...")
 if check_temp_saves():
     Yprint("Found restorable Changes")
-    Yprint("Type \"myline restore changes\" to resore Changes from last Session")
+    Yprint("Type \"myline restore changes\" to restore Changes from last Session")
 elif not check_temp_saves():
     Gprint("No restorable Changes Found")
 Wprint("")
@@ -194,7 +194,7 @@ def test_connection(host="8.8.8.8", port=53, timeout=3):
                 socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
                 Gprint(f"Successfully pinged {host} on {port}")
             except Exception as e:
-                Rprint(f"can't reach {host} error: {e}")
+                Rprint(f"Can't reach {host}. error: {e}")
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -258,7 +258,7 @@ def data_get_i(flags):
             field_value = i.get(parameter, "")
             if isinstance(field_value, str) and value.lower() in field_value.lower():
                 found = True
-                Gprint("found >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<< under index " + str(data.index(i)) + " where value is \"" + str(data[data.index(i)][parameter]) + "\"")
+                Gprint("Found >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<< under index " + str(data.index(i)) + " where value is \"" + str(data[data.index(i)][parameter]) + "\"")
         if not found:
             Rprint("nothing found under >>\"" + parameter + "\" contains " + "\"" + str(value) + "\"<<")
     except KeyError:
@@ -365,7 +365,7 @@ def ble_head_devs(flags):
         asyncio.run(scan(5.0, show_none))
 
 def myline_help_c(flags):
-    YYprint("For Explanations visit the Github page:")
+    YYprint("For explanations visit the GitHub page:")
     YYprint("github.com/hoffmann-paul/myline/blob/main/README.md")
     YYprint("")
     YYprint("All Commands:")
@@ -376,7 +376,7 @@ def myline_help_c(flags):
                 YYprint(f"{i} {j} {k}")
 
 def myline_help_info(flags):
-    Wprint("My Line")
+    Wprint("MyLine")
     Wprint("github.com/hoffmann-paul/myline")
     Wprint("")
     Wprint("MIT License")
@@ -398,14 +398,14 @@ def myline_kill_check(flags):
         saved_data = json.load(file)
     if saved_data != data:
         Rprint("Unsaved Changes between data and data.json")
-        Rprint("Killing process is canceld...")
+        Rprint("Killing process is canceled...")
     else:
         Gprint("No Unsaved Changes")
         RRprint("Kill MyLine...")
         sys.exit()
 
 def myline_kill_force(flags):
-    RRprint("Kill MyLine...")
+    RRprint("Killing MyLine...")
     sys.exit()
 
 def data_write_post(flags):
@@ -431,7 +431,7 @@ def myline_history_get(flags):
 def myline_history_clear(flags):
     global history
     if send_json(file_cmdhistory_json, []):
-        Rprint(f"Command History cleared with Success")
+        Rprint(f"Command history cleared successfully")
         history = []
     else:
         RRprint("Can't Clear History")
@@ -451,7 +451,7 @@ def data_card_new(flags):
 
 def data_card_delete(flags):
     data.pop(int(flags[0]))
-    Rprint(f"Poped Data Record at index {flags[0]}")
+    Rprint(f"Popped Data Record at index {flags[0]}")
 
 commands = {
     "data": {
@@ -534,7 +534,7 @@ while True:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
         else:
-            RRprint(f">>{raw}<< isnt't a vaild command")
+            RRprint(f">>{raw}<< isn't a valid command")
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::invalid")
     except (ValueError, IndexError, KeyError, TypeError) as e:
             # Normal user input mistakes — don't ask for a GitHub issue 
