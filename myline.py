@@ -13,6 +13,7 @@ import sys
 # --- SETUP VARIABLES ---
 file_cmddata_json = 'storage/cmddata.json'
 file_company_ids_json = 'storage/company_ids.json'
+file_cmdhistory_json = 'storage/cmdhistory.json'
 
 # --- Configurable data.json path ---
 # Precedence: CLI argument > default
@@ -85,6 +86,16 @@ except Exception:
     failload = True
     Rprint("An error occurred while trying to read data.json")
     data = []
+
+Wprint("Loading cmdhistory.json...")
+try:
+    with open(file_cmdhistory_json, 'r') as file:
+        history = json.load(file)
+        Gprint("Loaded cmdhistory.json successfully.")
+except Exception:
+    failload = True
+    Rprint("An error occurred while trying to read cmdhistory.json")
+    history = []
 
 Wprint("Loading cmddata.json...")
 try:
