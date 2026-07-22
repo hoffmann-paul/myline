@@ -301,10 +301,39 @@ def data_post_a(flags):
     if send_json(file_data_temp_json, []) == False:
         Rprint("Failed clearing Auto-Save Cache.")
 
+def _coerce_write_value(value):
+    """Convert a CLI write value from string to a JSON-friendly native type.
+
+    Command flags always arrive as strings. Without coercion, ``data WRITE t``
+    stores numbers as strings and breaks numeric comparisons against values
+    loaded from JSON (issue #44).
+    """
+    if not isinstance(value, str):
+        return value
+    lowered = value.strip().lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if lowered in ("null", "none"):
+        return None
+    # Integers first so "42" stays int; floats for values with a decimal point.
+    try:
+        if value.strip().startswith(("+", "-")):
+            body = value.strip()[1:]
+        else:
+            body = value.strip()
+        if body.isdigit():
+            return int(value.strip())
+        return float(value.strip())
+    except ValueError:
+        return value
+
+
 def data_write_t(flags):
     index = int(flags[0])
     parameter = flags[1]
-    value = flags[2]
+    value = _coerce_write_value(flags[2])
     data[index][parameter] = value
     auto_save()
     
