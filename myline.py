@@ -231,7 +231,7 @@ def wait_for_stop(stop_event):
 def auto_save():
     try:
         with open('storage/data_temp.json', 'w') as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=4)
     except Exception:
         Rprint("Failed Auto-Save")
 
@@ -291,7 +291,7 @@ def data_head_raw(flags):
 def data_post_a(flags):
     try:
         with open(file_data_json, 'w') as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=4)
             # Clear data_temp.json
             try:
                 with open('storage/data_temp.json', 'w') as file:
@@ -387,7 +387,7 @@ def add_cmd_to_history(cmd):
     history.append(cmd)
     try:
         with open(file_cmdhistory_json, 'w') as file:
-            json.dump(history, file)
+            json.dump(history, file, indent=4)
     except Exception:
         RRprint(f"Can't add {cmd} to cmdhistor.json")
 
