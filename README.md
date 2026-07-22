@@ -7,7 +7,7 @@ MyLine is my own command-line tool.
 3. Run MyLine: `python myline.py`
    - By default it looks for the data file at `storage/data.json`
    - To use a different path, pass `--data-file`, e.g. `python myline.py --data-file path/to/data.json`
-For a list of all commands type: `myline help c`
+For a list of all commands, type: `myline help c`
 
 ## Commands
 If you want to enter more than one word, put it between "Marks".
@@ -17,11 +17,11 @@ If you want to enter more than one word, put it between "Marks".
 | `data GET i {parameter} {value}` | Searches for indexes in data.json where `parameter` contains `value` |
 | `data HEAD f {index}` | Shows all filled data for an `index` |
 | `data HEAD raw {index}` | Shows all data for an `index` |
-| `data WRITE t {index} {parameter} {value}` | Overwrites a `Value` for a `Parameter` at an `index` temporary |
+| `data WRITE t {index} {parameter} {value}` | Overwrites a `Value` for a `Parameter` at an `index` temporarily |
 | `data WRITE POST {index} {parameter} {value}` | Overwrites a `Value` for a `Parameter` at an `index` and posts it in data.json |
 | `data POST a` | Post the data Array in the data.json file |
 | `data card new` | Creates a new Data Record shows the matching index and ask for a value for every parameter |
-| `data card delete {index}` | Deletes a Data Record permanent |
+| `data card delete {index}` | Deletes a Data Record permanently |
 | `data inspect struc` | Shows a list of all Parameters |
 | `data inspect count` | Counts all Data Records |
 | `net pg uop {url} {port}` | Tries to connect to a `url` on a specific `port` |
