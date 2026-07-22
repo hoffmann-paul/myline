@@ -2,7 +2,7 @@
 name: Bug report by AI
 about: You created the Issue with the help of AI
 title: ''
-labels: AI
+labels: AI, bug
 assignees: ''
 
 ---
