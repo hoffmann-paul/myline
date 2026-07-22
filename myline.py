@@ -345,12 +345,11 @@ def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
 
 def ble_head_devs(flags):
-    if flags[0] == "raw":
-        show_none = True
-    else:
-        show_none = False
+    # Accept "raw" / "loop" in either flag position (issue #50).
+    normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
+    show_none = "raw" in normalized
 
-    if flags[0] == "loop" or flags[1] == "loop":
+    if "loop" in normalized:
         stop_event = threading.Event()
         listener = threading.Thread(target=wait_for_stop, args=(stop_event,), daemon=True)
         listener.start()
