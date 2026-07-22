@@ -258,35 +258,32 @@ def data_get_i(flags):
     except KeyError:
         Rprint("There is no parameter called >>" + parameter + "<<")
 
+def is_filled_value(value):
+    """Return whether a field contains an explicit, non-empty value."""
+    if isinstance(value, bool):
+        return True
+
+    return value not in ("", 0, {}, [])
+
+
 def data_head_f(flags):
     index = flags[0]
-    for i in data[int(index)]:
-        if str(data[int(index)][i]) != "":
-            if data[int(index)][i] != 0:
-                m = i + " >>> " + str(data[int(index)][i])
-                GGprint(m)
+
+    for key, value in data[int(index)].items():
+        if is_filled_value(value):
+            message = key + " >>> " + str(value)
+            GGprint(message)
 
 def data_head_raw(flags):
     index = flags[0]
-    for i in data[int(index)]:
-        if str(data[int(index)][i]) != "":
-            if data[int(index)][i] != 0:
-                if data[int(index)][i] != {}:
-                    if data[int(index)][i] != []:
-                        m = i + " >>> " + str(data[int(index)][i]) 
-                        GGprint(m)
-                    else:
-                        m = i + " >>> " + str(data[int(index)][i]) 
-                        RRprint(m)
-                else:
-                    m = i + " >>> " + str(data[int(index)][i]) 
-                    RRprint(m)
-            else:
-                m = i + " >>> " + str(data[int(index)][i]) 
-                RRprint(m)
+
+    for key, value in data[int(index)].items():
+        message = key + " >>> " + str(value)
+
+        if is_filled_value(value):
+            GGprint(message)
         else:
-            m = i + " >>> " + str(data[int(index)][i]) 
-            RRprint(m)
+            RRprint(message)
 
 def data_post_a(flags):
     try:
