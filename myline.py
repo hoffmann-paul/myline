@@ -14,6 +14,7 @@ import sys
 file_cmddata_json = 'storage/cmddata.json'
 file_company_ids_json = 'storage/company_ids.json'
 file_cmdhistory_json = 'storage/cmdhistory.json'
+file_data_temp_json = 'storage/data_temp.json'
 
 # --- Configurable data.json path ---
 # Precedence: CLI argument > default
@@ -173,6 +174,14 @@ for entry in saves:
             if a:
                 known_devices[a.lower()] = name
 
+def send_json(file_path, object):
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(object, file, indent=4)
+            return True
+    except Exception:
+            return False
+
 def resolve_manufacturer(manufacturer_data):
     for company_id in manufacturer_data:
         if company_id in company_ids:
@@ -229,10 +238,7 @@ def wait_for_stop(stop_event):
     stop_event.set()
 
 def auto_save():
-    try:
-        with open('storage/data_temp.json', 'w') as file:
-            json.dump(data, file, indent=4)
-    except Exception:
+    if send_json(file_data_temp_json, data) == False:
         Rprint("Failed Auto-Save")
 
 def myline_restore_changes(flags):
@@ -289,17 +295,11 @@ def data_head_raw(flags):
             RRprint(m)
 
 def data_post_a(flags):
-    try:
-        with open(file_data_json, 'w') as file:
-            json.dump(data, file, indent=4)
-            # Clear data_temp.json
-            try:
-                with open('storage/data_temp.json', 'w') as file:
-                    json.dump([], file)
-            except Exception:
-                Rprint("Failed clearing Auto-Save Cache.")
-    except Exception:
-        RRprint("Can't POST data as data.json")
+    if send_json(file_data_json, data) == False:
+        Rprint("Can't POST data as data.json")
+
+    if send_json(file_data_temp_json, []) == False:
+        Rprint("Failed clearing Auto-Save Cache.")
 
 def data_write_t(flags):
     index = int(flags[0])
@@ -385,12 +385,10 @@ def data_write_post(flags):
 
 def add_cmd_to_history(cmd):
     history.append(cmd)
-    try:
-        with open(file_cmdhistory_json, 'w') as file:
-            json.dump(history, file, indent=4)
-    except Exception:
-        RRprint(f"Can't add {cmd} to cmdhistor.json")
-
+    
+    if send_json(file_cmdhistory_json, history) == False:
+        Rprint(f"Can't add {cmd} to cmdhistory.json")
+    
 def myline_history_get(flags):
     if history != []:
         for i in history:
@@ -403,12 +401,10 @@ def myline_history_get(flags):
 
 def myline_history_clear(flags):
     global history
-    try:
-        with open(file_cmdhistory_json, 'w') as file:
-            json.dump([], file)
-            history = []
-        Gprint("Command History cleared with Success")
-    except Exception:
+    if send_json(file_cmdhistory_json, []):
+        Rprint(f"Command History cleared with Success")
+        history = []
+    else:
         RRprint("Can't Clear History")
 
 def data_card_new(flags):
