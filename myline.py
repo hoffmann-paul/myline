@@ -411,6 +411,12 @@ def myline_history_clear(flags):
     except Exception:
         RRprint("Can't Clear History")
 
+def data_card_new(flags):
+    ...
+
+def data_card_delete(flags):
+    ...
+
 commands = {
     "data": {
         "GET": {
@@ -426,6 +432,10 @@ commands = {
         },
         "POST": {
             "a": data_post_a
+        },
+        "card": {
+            "new": data_card_new,
+            "delete": data_card_delete
         },
         "inspect": {
             "struc": data_inspect_struc,
