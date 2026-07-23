@@ -515,7 +515,11 @@ def data_card_delete(flags):
     Rprint(f"Popped Data Record at index {flags[0]}")
 
 def myline_help_paths(flags):
-    ...
+    Wprint(f"data file: {file_data_json}")
+    Wprint(f"cmddata file: {file_cmddata_json}")
+    Wprint(f"company_ids file: {file_company_ids_json}")
+    Wprint(f"cmdhistory file: {file_cmdhistory_json}")
+    Wprint(f"data_temp file: {file_data_temp_json}")
 
 def myline_check_files(flags):
     files = {
