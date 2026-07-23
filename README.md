@@ -5,8 +5,8 @@ MyLine is my own command-line tool.
 1. Download all files from github.com/hoffmann-paul/myline
 2. Install everything in the requirements.txt
 3. Run MyLine: `python myline.py`
-   - By default it looks for the data file at `storage/data.json`
-   - To use a different path, pass `--data-file`, e.g. `python myline.py --data-file path/to/data.json`
+   - By default storage files live under `storage/` (`data.json`, `cmddata.json`, `company_ids.json`, `cmdhistory.json`, `data_temp.json`)
+   - Override any path with CLI flags, e.g. `python myline.py --data-file path/to/data.json --cmdhistory-file /tmp/hist.json`
 For a list of all commands, type: `myline help c`
 
 ## Commands
@@ -38,7 +38,11 @@ If you want to enter more than one word, put it between "Marks".
 ## Command Line Options
 | Flag | Description |
 | ----- | ----- |
-| --data-file {path} | Path to the data.json file to load (defaults to `storage/data.json`) |
+| --data-file {path} | Path to data.json (default `storage/data.json`) |
+| --cmddata-file {path} | Path to cmddata.json (default `storage/cmddata.json`) |
+| --company-ids-file {path} | Path to company_ids.json (default `storage/company_ids.json`) |
+| --cmdhistory-file {path} | Path to cmdhistory.json (default `storage/cmdhistory.json`) |
+| --data-temp-file {path} | Path to data_temp.json auto-save (default `storage/data_temp.json`) |
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
