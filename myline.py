@@ -168,6 +168,7 @@ def check_temp_saves():
             return True
     else:
         Rprint("data_temp.json is missing")
+        return False
 
 Wprint("")
 if not failload:
