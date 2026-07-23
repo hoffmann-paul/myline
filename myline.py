@@ -166,6 +166,7 @@ if not failload:
     Gprint("Started MyLine successfully")
 else:
     Yprint("Started MyLine with missing source files")
+    Yprint("Type \"myline check files\" for detailed informations")
 Wprint("")
 Wprint("Checking for restorable Changes...")
 if check_temp_saves():
@@ -513,6 +514,12 @@ def data_card_delete(flags):
     data.pop(int(flags[0]))
     Rprint(f"Popped Data Record at index {flags[0]}")
 
+def myline_help_paths(flags):
+    ...
+
+def myline_check_files(flags):
+    ...
+
 commands = {
     "data": {
         "GET": {
@@ -551,14 +558,16 @@ commands = {
     "myline": {
         "help": {
             "c": myline_help_c,
-            "info": myline_help_info
+            "info": myline_help_info,
+            "paths": myline_help_paths
         },
         "history": {
             "GET": myline_history_get,
             "clear": myline_history_clear
         },
         "check": {
-            "changes": myline_check_changes
+            "changes": myline_check_changes,
+            "files": myline_check_files
         },
         "restore": {
             "changes": myline_restore_changes
