@@ -22,6 +22,11 @@ DEFAULT_DATA_TEMP_JSON = 'storage/data_temp.json'
 version = "v1.0.0"
 data = []
 history = []
+loaded_cmddata_json = False
+loaded_cmdhistory_json = False
+loaded_company_ids_json = False
+loaded_data_temp_json = False
+loaded_data_json = False
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -100,65 +105,51 @@ def WWprint(string):
 Wprint("-" * 60)
 Wprint("Started MyLine...")
 Wprint("")
-Wprint(f"Using data file: {file_data_json}")
-Wprint(f"Using cmddata file: {file_cmddata_json}")
-Wprint(f"Using company_ids file: {file_company_ids_json}")
-Wprint(f"Using cmdhistory file: {file_cmdhistory_json}")
-Wprint(f"Using data_temp file: {file_data_temp_json}")
-Wprint("")
 
 failload = False
 
-Wprint("Loading data.json...")
+Wprint("Loading Source files")
+
 try:
     with open(file_data_json, 'r') as file:
         data = json.load(file)
-        Gprint("Loaded data.json successfully.")
+        loaded_data_json = True
 except Exception:
     failload = True
-    Rprint("An error occurred while trying to read data.json")
     data = []
 
-Wprint("Loading cmdhistory.json...")
 try:
     with open(file_cmdhistory_json, 'r') as file:
         history = json.load(file)
-        Gprint("Loaded cmdhistory.json successfully.")
+        loaded_cmdhistory_json = True
 except Exception:
     failload = True
-    Rprint("An error occurred while trying to read cmdhistory.json")
     history = []
 
-Wprint("Loading cmddata.json...")
 try:
     with open(file_cmddata_json, 'r') as file:
         saves = json.load(file)
-        Gprint("Loaded cmddata.json successfully.")
+        loaded_cmddata_json = True
 except Exception:
     failload = True
-    Rprint("An error occurred while trying to read cmddata.json")
     saves = []
 
-Wprint("Loading company_ids.json...")
 try:
     with open(file_company_ids_json, 'r') as file:
         company_ids_raw = json.load(file)
         company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
-        Gprint("Loaded company_ids.json successfully.")
+        loaded_company_ids_json = True
 except Exception as e:
     failload = True
-    Rprint("An error occurred while trying to read company_ids.json")
     company_ids = {}
 
-Wprint("Loading data_temp.json...")
 try:
     with open(file_data_temp_json, 'r') as file:
         temp_data = json.load(file)
-        Gprint("Loaded temp_data.json successfully.")
+        loaded_data_temp_json = True
 except Exception:
     failload = True
     temp_data = 0
-    Rprint(f"An error occurred while trying to read data_temp.json")
 
 def check_temp_saves():
     if temp_data != 0:
