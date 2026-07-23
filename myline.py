@@ -454,20 +454,20 @@ def myline_check_changes(flags):
     else:
         Gprint("No Unsaved Changes")
 
-def myline_kill_check(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
-    if saved_data != data:
-        Rprint("Unsaved Changes between data and data.json")
-        Rprint("Killing process is canceled...")
-    else:
-        Gprint("No Unsaved Changes")
-        RRprint("Kill MyLine...")
-        sys.exit()
-
-def myline_kill_force(flags):
-    RRprint("Killing MyLine...")
-    sys.exit()
+def kill(flags):
+    if flags[0] != "f":
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+        if saved_data != data:
+            Rprint("Unsaved Changes between data and data.json")
+            Rprint("Killing process is canceled...")
+        else:
+            Gprint("No Unsaved Changes")
+            RRprint("Kill MyLine...")
+            sys.exit()
+    elif flags[0] == "f":
+        RRprint("Killing MyLine...")
+        sys.exit() 
 
 def data_write_post(flags):
     data_write_t(flags)
@@ -586,13 +586,13 @@ commands = {
         },
         "restore": {
             "changes": myline_restore_changes
-        },
-        "kill": {
-            "check": myline_kill_check,
-            "force": myline_kill_force
         }
     }
 } 
+
+fast_commands = {
+    "kill": kill
+}
 
 while True:
     now = datetime.datetime.now()
@@ -613,8 +613,11 @@ while True:
         flags = parts[3:]
         while len(flags) < 5:
                 flags.append("")
-
-        if keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
+        if keyword in fast_commands:
+            flags = parts[1:]
+            fast_commands[keyword](flags)
+            add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
+        elif keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
         else:
