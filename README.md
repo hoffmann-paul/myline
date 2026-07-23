@@ -34,8 +34,8 @@ If you want to enter more than one word, put it between "Marks".
 | `myline check changes` | Checks if there are some unsaved changes |
 | `myline check files` | Checks if all Sourcefiles loaded at the Programm start |
 | `myline restore changes` | Restore last Sessions Changes |
-| `myline kill check` | Checks if there are some unsaved changes; if yes then nothing happens, but if there are no unsaved changes MyLine is killed |
-| `myline kill force` | Kills MyLine |
+| `kill` | Checks if there are some unsaved changes; if yes then nothing happens, but if there are no unsaved changes MyLine is killed |
+| `kill f` | Kills MyLine |
 
 ## Command Line Options
 | Flag | Description |
