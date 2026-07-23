@@ -518,7 +518,18 @@ def myline_help_paths(flags):
     ...
 
 def myline_check_files(flags):
-    ...
+    files = {
+        "cmddata.json": loaded_cmddata_json,
+        "cmdhistory.json": loaded_cmdhistory_json,
+        "company_ids.json": loaded_company_ids_json,
+        "data_temp.json": loaded_data_json,
+        "data.json": loaded_data_json
+    }
+    for file_name in files:
+        if files[file_name]:
+            Gprint(f"Loaded {file_name} successfully")
+        else:
+            RRprint(f"An error occurred while trying to read {file_name}")
 
 commands = {
     "data": {
