@@ -317,19 +317,49 @@ def data_head_f(flags):
 
     for key, value in data[int(index)].items():
         if is_filled_value(value):
-            message = key + " >>> " + str(value)
-            GGprint(message)
+            if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+                message = key + " >>> " + str(value)
+                GGprint(message)
+            elif isinstance(value, list):
+                GGprint(key + ":")
+                for i in data[int(index)][key]:
+                    GGprint(f">>> {i}")
+            elif isinstance(value, dict):
+                GGprint(key + ":")
+                for sub_key, sub_value in data[int(index)][key].items():
+                    message = sub_key + " >>> " + str(sub_value)
+                    GGprint(message)
 
 def data_head_raw(flags):
     index = flags[0]
 
     for key, value in data[int(index)].items():
-        message = key + " >>> " + str(value)
-
         if is_filled_value(value):
-            GGprint(message)
+            if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+                message = key + " >>> " + str(value)
+                GGprint(message)
+            elif isinstance(value, list):
+                GGprint(key + ":")
+                for i in data[int(index)][key]:
+                    GGprint(f">>> {i}")
+            elif isinstance(value, dict):
+                GGprint(key + ":")
+                for sub_key, sub_value in data[int(index)][key].items():
+                    message = sub_key + " >>> " + str(sub_value)
+                    GGprint(message)
         else:
-            RRprint(message)
+            if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+                message = key + " >>> " + str(value)
+                RRprint(message)
+            elif isinstance(value, list):
+                RRprint(key + ":")
+                for i in data[int(index)][key]:
+                    RRprint(f">>> {i}")
+            elif isinstance(value, dict):
+                RRprint(key + ":")
+                for sub_key, sub_value in data[int(index)][key].items():
+                    message = sub_key + " >>> " + str(sub_value)
+                    RRprint(message)
 
 def data_post_a(flags):
     if send_json(file_data_json, data) == False:
