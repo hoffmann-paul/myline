@@ -36,6 +36,7 @@ If you want to enter more than one word, put it between "Marks".
 | `myline restore changes` | Restore last Sessions Changes |
 | `kill` | Checks if there are some unsaved changes; if yes then nothing happens, but if there are no unsaved changes MyLine is killed |
 | `kill f` | Kills MyLine |
+| `last` | Repeats the last Commnd if possible, you can only repeat commands without flags |
 
 ## Command Line Options
 | Flag | Description |
