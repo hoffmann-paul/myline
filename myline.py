@@ -548,10 +548,49 @@ def repeat_last_cmd(flags):
     else:
         Rprint("No command history found")
 
+def data_get_im(flags):
+    try:
+        amount = int(flags[0]) -1
+    except Exception:
+        RRprint("Index Amount must me an Integer")
+        return
+    index_list = []
+    parameter = input("parameter >>> ")
+    value = input("value >>> ")
+    found = False
+    try:
+        for i in data:
+            field_value = i.get(parameter, "")
+            if isinstance(field_value, str) and value.lower() in field_value.lower():
+                found = True
+                Gprint(str(data.index(i)) + " is working for all conditions")
+                index_list.append(str(data.index(i)))
+        if not found:
+            Rprint("nothing works for all conditions")
+    except KeyError:
+        Rprint("There is no parameter called >>" + parameter + "<<")
+    for a in range(amount):
+            parameter = input("parameter >>> ")
+            value = input("value >>> ")
+            found = False
+            try:
+                for i in data:
+                    field_value = i.get(parameter, "")
+                    if isinstance(field_value, str) and value.lower() in field_value.lower():
+                        found = True
+                        Gprint(str(data.index(i)) + " is working for all conditions")
+                        index_list.append(str(data.index(i)))
+                if not found:
+                    Rprint("nothing works for all conditions")
+                    break
+            except KeyError:
+                Rprint("There is no parameter called >>" + parameter + "<<")
+
 commands = {
     "data": {
         "GET": {
-            "i": data_get_i 
+            "i": data_get_i,
+            "iM": data_get_im
         },
         "HEAD": {
             "raw": data_head_raw,
