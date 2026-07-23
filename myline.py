@@ -534,6 +534,19 @@ def myline_check_files(flags):
             Gprint(f"Loaded {file_name} successfully")
         else:
             RRprint(f"An error occurred while trying to read {file_name}")
+        
+def repeat_last_cmd(flags):
+    if history != []:
+        cmd = history[-1]
+        if cmd.endswith("::valid"):
+            cmd = cmd.replace(" ::valid", "")
+            try:
+                func = globals()[cmd]
+                func(flags)
+            except Exception:
+                Rprint("You can't repeat this command")
+    else:
+        Rprint("No command history found")
 
 commands = {
     "data": {
@@ -591,7 +604,8 @@ commands = {
 } 
 
 fast_commands = {
-    "kill": kill
+    "kill": kill,
+    "last": repeat_last_cmd
 }
 
 while True:
@@ -616,7 +630,7 @@ while True:
         if keyword in fast_commands:
             flags = parts[1:]
             fast_commands[keyword](flags)
-            add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
+            add_cmd_to_history(f"{keyword} ::valid")
         elif keyword in commands and sub_keyword in commands[keyword] and sub_sub_keyword in commands[keyword][sub_keyword]:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
