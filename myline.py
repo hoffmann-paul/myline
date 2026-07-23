@@ -321,14 +321,21 @@ def data_head_f(flags):
                 message = key + " >>> " + str(value)
                 GGprint(message)
             elif isinstance(value, list):
-                GGprint(key + ":")
-                for i in data[int(index)][key]:
-                    GGprint(f">>> {i}")
+                if value != []:
+                    GGprint(key + ":")
+                    for i in data[int(index)][key]:
+                        GGprint(f"> >>> {i}")
             elif isinstance(value, dict):
-                GGprint(key + ":")
-                for sub_key, sub_value in data[int(index)][key].items():
-                    message = sub_key + " >>> " + str(sub_value)
-                    GGprint(message)
+                if value != {}:
+                    message = []
+                    for sub_key, sub_value in data[int(index)][key].items():
+                        if is_filled_value(sub_value):
+                            message_entry = "> " + sub_key + " >>> " + str(sub_value)
+                            message.append(message_entry)
+                    if message != []:
+                        GGprint(key + ":")
+                        for i in message:
+                            GGprint(i)
 
 def data_head_raw(flags):
     index = flags[0]
@@ -339,27 +346,23 @@ def data_head_raw(flags):
                 message = key + " >>> " + str(value)
                 GGprint(message)
             elif isinstance(value, list):
-                GGprint(key + ":")
-                for i in data[int(index)][key]:
-                    GGprint(f">>> {i}")
+                if value != []:
+                    GGprint(key + ":")
+                    for i in data[int(index)][key]:
+                        GGprint(f"> >>> {i}")
             elif isinstance(value, dict):
-                GGprint(key + ":")
-                for sub_key, sub_value in data[int(index)][key].items():
-                    message = sub_key + " >>> " + str(sub_value)
-                    GGprint(message)
+                if value != {}:
+                    GGprint(key + ":")
+                    for sub_key, sub_value in data[int(index)][key].items():
+                        if is_filled_value(sub_value):
+                            message = "> " + sub_key + " >>> " + str(sub_value)
+                            GGprint(message)
+                        else:
+                            message = "> " + sub_key + " >>> " + str(sub_value)
+                            RRprint(message)
         else:
-            if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
-                message = key + " >>> " + str(value)
-                RRprint(message)
-            elif isinstance(value, list):
-                RRprint(key + ":")
-                for i in data[int(index)][key]:
-                    RRprint(f">>> {i}")
-            elif isinstance(value, dict):
-                RRprint(key + ":")
-                for sub_key, sub_value in data[int(index)][key].items():
-                    message = sub_key + " >>> " + str(sub_value)
-                    RRprint(message)
+            message = key + " >>> " + str(value)
+            RRprint(message)
 
 def data_post_a(flags):
     if send_json(file_data_json, data) == False:
