@@ -7,6 +7,7 @@ MyLine is my own command-line tool.
 3. Run MyLine: `python myline.py`
    - By default storage files live under `storage/` (`data.json`, `cmddata.json`, `company_ids.json`, `cmdhistory.json`, `data_temp.json`)
    - Override any path with CLI flags, e.g. `python myline.py --data-file path/to/data.json --cmdhistory-file /tmp/hist.json`
+   - Press <kbd>Tab</kbd> to autocomplete the current command part (top-level, sub-keyword, or sub-sub-keyword). Disable with `python myline.py --no-completion` for piping input.
 For a list of all commands, type: `myline help c`
 
 ## How to operate
@@ -61,6 +62,7 @@ For a list of all commands, type: `myline help c`
 | --company-ids-file {path} | Path to company_ids.json (default `storage/company_ids.json`) |
 | --cmdhistory-file {path} | Path to cmdhistory.json (default `storage/cmdhistory.json`) |
 | --data-temp-file {path} | Path to data_temp.json auto-save (default `storage/data_temp.json`) |
+| --no-completion | Disable interactive Tab completion (useful for piped / scripted input) |
 
 ## License
 This project is licensed under the [MIT License](LICENSE).

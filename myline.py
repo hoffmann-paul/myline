@@ -10,6 +10,16 @@ import argparse
 import platform
 import sys
 
+# Tab completion is provided by the stdlib ``readline`` module on Unix
+# and macOS. On Windows ``readline`` is not bundled with CPython by default,
+# so we degrade gracefully — typing still works, Tab just falls through.
+try:
+    import readline  # noqa: F401  (presence is enough; functions used below)
+    _READLINE_AVAILABLE = True
+except ImportError:  # pragma: no cover - exercised on Windows without pyreadline
+    readline = None  # type: ignore[assignment]
+    _READLINE_AVAILABLE = False
+
 # --- SETUP VARIABLES (defaults; overridable via CLI) ---
 # Precedence for each path: CLI argument > default under storage/
 DEFAULT_DATA_JSON = 'storage/data.json'
@@ -29,6 +39,12 @@ loaded_data_temp_json = False
 loaded_data_json = False
 
 parser = argparse.ArgumentParser(description="MyLine")
+parser.add_argument(
+    "--no-completion",
+    dest="no_completion",
+    action="store_true",
+    help="Disable interactive Tab completion (useful for piping input).",
+)
 parser.add_argument(
     "--data-file",
     dest="data_file",
@@ -646,6 +662,85 @@ fast_commands = {
     "kill": kill,
     "last": repeat_last_cmd
 }
+
+
+def _all_command_keywords():
+    """Return the union of all known top-level command keywords."""
+    return list(commands.keys()) + list(fast_commands.keys())
+
+
+def _complete_sub_keywords(keyword, prefix):
+    """Return the sub-keywords available for ``keyword`` matching ``prefix``."""
+    if keyword in fast_commands:
+        return []
+    sub = commands.get(keyword, {})
+    return [k for k in sub.keys() if k.startswith(prefix)]
+
+
+def _complete_sub_sub_keywords(keyword, sub_keyword, prefix):
+    """Return the leaf command names under ``keyword sub_keyword``."""
+    if keyword in fast_commands:
+        return []
+    sub = commands.get(keyword, {})
+    leaves = sub.get(sub_keyword, {})
+    return [k for k in leaves.keys() if k.startswith(prefix)]
+
+
+def _line_completer(text, state):
+    """readline completer for the MyLine REPL.
+
+    Walks the typed line and returns the ``state``-th candidate that
+    matches the current word. Words are split with ``shlex`` so quoted
+    paths ("my doc") don't get torn apart.
+
+    Returns ``None`` when no candidates match (which makes readline
+    beep instead of inserting whitespace).
+    """
+    if readline is None:  # pragma: no cover - Windows without pyreadline
+        return None
+    try:
+        line = readline.get_line_buffer()
+        end = readline.get_endidx()
+        # Re-derive the typed-so-far list from the line buffer so we
+        # never trust ``text`` alone (it can be empty at end of line).
+        typed = shlex.split(line[:end]) if line[:end].strip() else []
+        prefix = text or ""
+        word_index = len(typed)
+        if word_index == 0:
+            candidates = [k for k in _all_command_keywords() if k.startswith(prefix)]
+        elif word_index == 1:
+            candidates = _complete_sub_keywords(typed[0], prefix)
+        elif word_index == 2 and len(typed) >= 2:
+            candidates = _complete_sub_sub_keywords(typed[0], typed[1], prefix)
+        else:
+            # Flags / paths — no command completion at this depth.
+            candidates = []
+        if 0 <= state < len(candidates):
+            # Append a space after the last candidate only on the last
+            # match so further Tab presses keep cycling within the group.
+            return candidates[state]
+        return None
+    except Exception:
+        # Never let a completion failure crash the REPL.
+        return None
+
+
+def _install_completer():
+    """Wire the MyLine completer into readline (best-effort)."""
+    if not _READLINE_AVAILABLE or args.no_completion:
+        return
+    try:
+        readline.set_completer(_line_completer)
+        # Bind Tab to the completer explicitly so behavior is identical
+        # on macOS libedit and Linux libreadline.
+        readline.parse_and_bind("tab: complete")
+    except Exception:
+        # readline can raise on broken TERM / very minimal builds; the
+        # REPL stays usable even if Tab is just a no-op.
+        pass
+
+
+_install_completer()
 
 while True:
     now = datetime.datetime.now()
