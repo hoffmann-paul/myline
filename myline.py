@@ -10,6 +10,16 @@ import argparse
 import platform
 import sys
 
+# Tab completion is provided by the stdlib ``readline`` module on Unix
+# and macOS. On Windows ``readline`` is not bundled with CPython by default,
+# so we degrade gracefully — typing still works, Tab just falls through.
+try:
+    import readline  # noqa: F401  (presence is enough; functions used below)
+    _READLINE_AVAILABLE = True
+except ImportError:  # pragma: no cover - exercised on Windows without pyreadline
+    readline = None  # type: ignore[assignment]
+    _READLINE_AVAILABLE = False
+
 # --- SETUP VARIABLES (defaults; overridable via CLI) ---
 # Precedence for each path: CLI argument > default under storage/
 DEFAULT_DATA_JSON = 'storage/data.json'
@@ -29,6 +39,12 @@ loaded_data_temp_json = False
 loaded_data_json = False
 
 parser = argparse.ArgumentParser(description="MyLine")
+parser.add_argument(
+    "--no-completion",
+    dest="no_completion",
+    action="store_true",
+    help="Disable interactive Tab completion (useful for piping input).",
+)
 parser.add_argument(
     "--data-file",
     dest="data_file",
@@ -646,6 +662,114 @@ fast_commands = {
     "kill": kill,
     "last": repeat_last_cmd
 }
+
+
+def _all_command_keywords():
+    """Return the union of all known top-level command keywords."""
+    return list(commands.keys()) + list(fast_commands.keys())
+
+
+def _complete_sub_keywords(keyword, prefix):
+    """Return the sub-keywords available for ``keyword`` matching ``prefix``."""
+    if keyword in fast_commands:
+        return []
+    sub = commands.get(keyword, {})
+    return [k for k in sub.keys() if k.startswith(prefix)]
+
+
+def _complete_sub_sub_keywords(keyword, sub_keyword, prefix):
+    """Return the leaf command names under ``keyword sub_keyword``."""
+    if keyword in fast_commands:
+        return []
+    sub = commands.get(keyword, {})
+    leaves = sub.get(sub_keyword, {})
+    return [k for k in leaves.keys() if k.startswith(prefix)]
+
+
+def _line_completer(text, state):
+    """readline completer for the MyLine REPL.
+
+    Walks the words *before* the current token and returns the ``state``-th
+    candidate matching ``text``. ``get_begidx()`` is important here: the line
+    buffer already contains the partial token, so counting the whole buffer
+    would mistake ``da<Tab>`` for a sub-command lookup.
+
+    Returns ``None`` when no candidates match (which makes readline
+    beep instead of inserting whitespace).
+    """
+    if readline is None:  # pragma: no cover - Windows without pyreadline
+        return None
+    try:
+        line = readline.get_line_buffer()
+        begin = readline.get_begidx()
+        before_current = line[:begin]
+        typed = shlex.split(before_current) if before_current.strip() else []
+        prefix = text or ""
+        word_index = len(typed)
+        if word_index == 0:
+            candidates = [k for k in _all_command_keywords() if k.startswith(prefix)]
+        elif word_index == 1:
+            candidates = _complete_sub_keywords(typed[0], prefix)
+        elif word_index == 2:
+            candidates = _complete_sub_sub_keywords(typed[0], typed[1], prefix)
+        else:
+            # Flags / paths — no command completion at this depth.
+            candidates = []
+        if 0 <= state < len(candidates):
+            return candidates[state]
+        return None
+    except Exception:
+        # Never let a completion failure crash the REPL.
+        return None
+
+
+def _readline_tab_binding(readline_module):
+    """Return the Tab binding syntax for GNU readline or macOS libedit."""
+    backend = getattr(readline_module, "backend", "")
+    module_doc = getattr(readline_module, "__doc__", "") or ""
+    if backend == "editline" or "libedit" in module_doc.lower():
+        return "bind ^I rl_complete"
+    return "tab: complete"
+
+
+def _install_completer():
+    """Wire the MyLine completer into readline (best-effort).
+
+    The Tab binding syntax differs across readline implementations:
+
+      * GNU readline (Linux): ``tab: complete``
+      * libedit / NetBSD editline (macOS): ``bind ^I rl_complete``
+
+    We try the syntax chosen by :func:`_readline_tab_binding` first,
+    then fall back to the alternative so a misdetected backend (older
+    Python, an unusual ``readline`` shim) still gets Tab-bound. Without
+    a successful bind the Tab key is not intercepted and the terminal
+    passes the literal character through, which on macOS appears as a
+    stray ``[`` at the start of the line.
+    """
+    if not _READLINE_AVAILABLE or args.no_completion:
+        return
+    try:
+        readline.set_completer(_line_completer)
+        primary = _readline_tab_binding(readline)
+        fallback = (
+            "tab: complete" if primary == "bind ^I rl_complete"
+            else "bind ^I rl_complete"
+        )
+        for binding in (primary, fallback):
+            try:
+                readline.parse_and_bind(binding)
+                break
+            except Exception:
+                # Try the next syntax.
+                continue
+    except Exception:
+        # readline can raise on broken TERM / very minimal builds; the
+        # REPL stays usable even if Tab is just a no-op.
+        pass
+
+
+_install_completer()
 
 while True:
     now = datetime.datetime.now()
