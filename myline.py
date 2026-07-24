@@ -689,9 +689,10 @@ def _complete_sub_sub_keywords(keyword, sub_keyword, prefix):
 def _line_completer(text, state):
     """readline completer for the MyLine REPL.
 
-    Walks the typed line and returns the ``state``-th candidate that
-    matches the current word. Words are split with ``shlex`` so quoted
-    paths ("my doc") don't get torn apart.
+    Walks the words *before* the current token and returns the ``state``-th
+    candidate matching ``text``. ``get_begidx()`` is important here: the line
+    buffer already contains the partial token, so counting the whole buffer
+    would mistake ``da<Tab>`` for a sub-command lookup.
 
     Returns ``None`` when no candidates match (which makes readline
     beep instead of inserting whitespace).
@@ -700,29 +701,35 @@ def _line_completer(text, state):
         return None
     try:
         line = readline.get_line_buffer()
-        end = readline.get_endidx()
-        # Re-derive the typed-so-far list from the line buffer so we
-        # never trust ``text`` alone (it can be empty at end of line).
-        typed = shlex.split(line[:end]) if line[:end].strip() else []
+        begin = readline.get_begidx()
+        before_current = line[:begin]
+        typed = shlex.split(before_current) if before_current.strip() else []
         prefix = text or ""
         word_index = len(typed)
         if word_index == 0:
             candidates = [k for k in _all_command_keywords() if k.startswith(prefix)]
         elif word_index == 1:
             candidates = _complete_sub_keywords(typed[0], prefix)
-        elif word_index == 2 and len(typed) >= 2:
+        elif word_index == 2:
             candidates = _complete_sub_sub_keywords(typed[0], typed[1], prefix)
         else:
             # Flags / paths — no command completion at this depth.
             candidates = []
         if 0 <= state < len(candidates):
-            # Append a space after the last candidate only on the last
-            # match so further Tab presses keep cycling within the group.
             return candidates[state]
         return None
     except Exception:
         # Never let a completion failure crash the REPL.
         return None
+
+
+def _readline_tab_binding(readline_module):
+    """Return the Tab binding syntax for GNU readline or macOS libedit."""
+    backend = getattr(readline_module, "backend", "")
+    module_doc = getattr(readline_module, "__doc__", "") or ""
+    if backend == "editline" or "libedit" in module_doc.lower():
+        return "bind ^I rl_complete"
+    return "tab: complete"
 
 
 def _install_completer():
@@ -731,9 +738,7 @@ def _install_completer():
         return
     try:
         readline.set_completer(_line_completer)
-        # Bind Tab to the completer explicitly so behavior is identical
-        # on macOS libedit and Linux libreadline.
-        readline.parse_and_bind("tab: complete")
+        readline.parse_and_bind(_readline_tab_binding(readline))
     except Exception:
         # readline can raise on broken TERM / very minimal builds; the
         # REPL stays usable even if Tab is just a no-op.

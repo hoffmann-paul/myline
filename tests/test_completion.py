@@ -60,6 +60,7 @@ def _load_myline_helpers():
         "complete_sub_keywords": namespace["_complete_sub_keywords"],
         "complete_sub_sub_keywords": namespace["_complete_sub_sub_keywords"],
         "line_completer": namespace["_line_completer"],
+        "readline_tab_binding": namespace["_readline_tab_binding"],
         "commands": namespace["commands"],
         "fast_commands": namespace["fast_commands"],
     }
@@ -113,19 +114,33 @@ class TestCompletionHelpers(unittest.TestCase):
         self.assertEqual(HELPERS["complete_sub_keywords"]("kill", ""), [])
 
 
+class TestReadlineBinding(unittest.TestCase):
+    def test_gnu_readline_uses_standard_binding(self):
+        module = types.SimpleNamespace(backend="readline", __doc__="GNU readline")
+        self.assertEqual(HELPERS["readline_tab_binding"](module), "tab: complete")
+
+    def test_libedit_backend_uses_editline_binding(self):
+        module = types.SimpleNamespace(backend="editline", __doc__="")
+        self.assertEqual(
+            HELPERS["readline_tab_binding"](module), "bind ^I rl_complete"
+        )
+
+    def test_older_macos_python_detects_libedit_from_doc(self):
+        module = types.SimpleNamespace(__doc__="Importing this module enables libedit")
+        self.assertEqual(
+            HELPERS["readline_tab_binding"](module), "bind ^I rl_complete"
+        )
+
+
 class TestLineCompleter(unittest.TestCase):
     """Drive ``_line_completer`` with a stub readline module."""
 
     def setUp(self):
-        # Build a fake readline that lets us control what the completer
-        # "sees" as the line buffer and cursor position.
         self.fake_readline = mock.MagicMock()
         self.line_buffer = ""
-        # The completer reads end-of-line cursor; default to end of buffer.
+        self.begin_index = 0
         self.fake_readline.get_line_buffer.side_effect = lambda: self.line_buffer
-        self.fake_readline.get_endidx.side_effect = lambda: len(self.line_buffer)
-        self.fake_readline.get_begidx.return_value = 0
-        # Patch the module-level ``readline`` name inside the loaded namespace.
+        self.fake_readline.get_begidx.side_effect = lambda: self.begin_index
         self._original_readline = HELPERS["line_completer"].__globals__.get(
             "readline"
         )
@@ -135,9 +150,9 @@ class TestLineCompleter(unittest.TestCase):
         HELPERS["line_completer"].__globals__["readline"] = self._original_readline
 
     def _candidates(self, line, partial):
-        """Return the full list of candidates for ``line`` with ``partial``
-        as the current word under the cursor."""
+        """Return candidates as readline sees them for a real input buffer."""
         self.line_buffer = line
+        self.begin_index = len(line) - len(partial)
         out = []
         state = 0
         while True:
@@ -148,27 +163,24 @@ class TestLineCompleter(unittest.TestCase):
             state += 1
         return out
 
-    def test_complete_top_level(self):
-        # Empty line, partial word "d" -> should offer data.
-        self.assertIn("data", self._candidates("", "d"))
+    def test_complete_top_level_partial_in_line_buffer(self):
+        self.assertEqual(self._candidates("da", "da"), ["data"])
 
     def test_complete_sub_after_data(self):
-        # ``data`` typed, completing sub-keyword starting with "W".
-        self.assertEqual(self._candidates("data ", "W"), ["WRITE"])
+        self.assertEqual(self._candidates("data W", "W"), ["WRITE"])
 
     def test_complete_sub_sub(self):
-        # ``data GET`` typed, completing leaf starting with "i".
-        self.assertEqual(self._candidates("data GET ", "i"), ["i"])
+        self.assertEqual(self._candidates("data GET i", "i"), ["i"])
+
+    def test_complete_empty_token_after_space(self):
+        self.assertIn("WRITE", self._candidates("data ", ""))
 
     def test_no_completion_for_flags(self):
-        # Fourth token onwards: no command completion, completer returns None.
-        self.assertIsNone(HELPERS["line_completer"]("--data-file", 0))
+        self.assertEqual(
+            self._candidates("data GET i --data-file", "--data-file"), []
+        )
 
     def test_handles_quoted_path(self):
-        # A quoted path with a space should not be split by shlex.
-        # ``data GET i "path with space"`` -> the partial word is after
-        # the last space, so the completer should still walk the typed
-        # tokens and not be confused by the quote.
         self.assertEqual(
             self._candidates('data GET i "path', '"path'),
             [],
