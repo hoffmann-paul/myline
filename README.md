@@ -23,6 +23,7 @@ For a list of all commands, type: `myline help c`
 | Command | Flags | Keys | Description |
 | ----- | ----- | ----- | ----- |
 | `data GET i` | `parameter` `value`|  | Searches for indexes in data.json where `parameter` contains `value` |
+| `data GET im` | `search amount` |  | Works excactly like `data GET i` but you can search with multiple conditions |
 | `data HEAD f` | `index` |  | Shows all filled data for an `index` |
 | `data HEAD raw` | `index` |  | Shows all data for an `index` |
 | `data WRITE t` | `index` `parameter` `value` |  | Overwrites a `Value` for a `Parameter` at an `index` temporarily |
