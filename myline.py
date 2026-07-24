@@ -733,12 +733,36 @@ def _readline_tab_binding(readline_module):
 
 
 def _install_completer():
-    """Wire the MyLine completer into readline (best-effort)."""
+    """Wire the MyLine completer into readline (best-effort).
+
+    The Tab binding syntax differs across readline implementations:
+
+      * GNU readline (Linux): ``tab: complete``
+      * libedit / NetBSD editline (macOS): ``bind ^I rl_complete``
+
+    We try the syntax chosen by :func:`_readline_tab_binding` first,
+    then fall back to the alternative so a misdetected backend (older
+    Python, an unusual ``readline`` shim) still gets Tab-bound. Without
+    a successful bind the Tab key is not intercepted and the terminal
+    passes the literal character through, which on macOS appears as a
+    stray ``[`` at the start of the line.
+    """
     if not _READLINE_AVAILABLE or args.no_completion:
         return
     try:
         readline.set_completer(_line_completer)
-        readline.parse_and_bind(_readline_tab_binding(readline))
+        primary = _readline_tab_binding(readline)
+        fallback = (
+            "tab: complete" if primary == "bind ^I rl_complete"
+            else "bind ^I rl_complete"
+        )
+        for binding in (primary, fallback):
+            try:
+                readline.parse_and_bind(binding)
+                break
+            except Exception:
+                # Try the next syntax.
+                continue
     except Exception:
         # readline can raise on broken TERM / very minimal builds; the
         # REPL stays usable even if Tab is just a no-op.

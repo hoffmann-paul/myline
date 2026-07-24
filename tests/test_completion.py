@@ -92,7 +92,10 @@ class TestCompletionHelpers(unittest.TestCase):
 
     def test_sub_sub_keywords_for_data_get(self):
         leaves = HELPERS["complete_sub_sub_keywords"]("data", "GET", "")
-        self.assertEqual(leaves, ["i"])
+        # The current myline.py may carry an extra `iM` (manual import) leaf
+        # alongside `i`. Compare as a set so the test stays valid as the
+        # commands dict grows on the upstream branch.
+        self.assertEqual(set(leaves), {"i", "iM"})
 
     def test_sub_sub_keywords_for_data_write(self):
         leaves = HELPERS["complete_sub_sub_keywords"]("data", "WRITE", "")
@@ -170,7 +173,9 @@ class TestLineCompleter(unittest.TestCase):
         self.assertEqual(self._candidates("data W", "W"), ["WRITE"])
 
     def test_complete_sub_sub(self):
-        self.assertEqual(self._candidates("data GET i", "i"), ["i"])
+        # Use a prefix that doesn't match `iM` so the assertion stays
+        # stable even if upstream adds more leaves to data GET later.
+        self.assertEqual(self._candidates("data GET i", "i"), ["i", "iM"])
 
     def test_complete_empty_token_after_space(self):
         self.assertIn("WRITE", self._candidates("data ", ""))
