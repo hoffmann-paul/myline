@@ -455,9 +455,15 @@ def myline_check_changes(flags):
         Gprint("No Unsaved Changes")
 
 def kill(flags):
-    if flags[0] != "f":
-        with open(file_data_json, 'r') as file:
-            saved_data = json.load(file)
+    force = bool(flags) and flags[0] == "f"
+    if not force:
+        try:
+            with open(file_data_json, 'r') as file:
+                saved_data = json.load(file)
+        except Exception:
+            Rprint(f"Can't read {file_data_json} to check for unsaved changes")
+            Rprint("Killing process is canceled... (use kill f to force)")
+            return
         if saved_data != data:
             Rprint("Unsaved Changes between data and data.json")
             Rprint("Killing process is canceled...")
@@ -465,9 +471,9 @@ def kill(flags):
             Gprint("No Unsaved Changes")
             RRprint("Kill MyLine...")
             sys.exit()
-    elif flags[0] == "f":
+    else:
         RRprint("Killing MyLine...")
-        sys.exit() 
+        sys.exit()
 
 def data_write_post(flags):
     data_write_t(flags)
@@ -498,6 +504,10 @@ def myline_history_clear(flags):
         RRprint("Can't Clear History")
 
 def data_card_new(flags):
+    if not data:
+        Rprint("No existing data records — cannot infer fields for a new card")
+        Rprint("Add at least one record structure first, or restore from a save")
+        return
     index = len(data)
     Wprint(f"Index for new Data Record: {index}")
     new_card = {}
@@ -526,8 +536,8 @@ def myline_check_files(flags):
         "cmddata.json": loaded_cmddata_json,
         "cmdhistory.json": loaded_cmdhistory_json,
         "company_ids.json": loaded_company_ids_json,
-        "data_temp.json": loaded_data_json,
-        "data.json": loaded_data_json
+        "data_temp.json": loaded_data_temp_json,
+        "data.json": loaded_data_json,
     }
     for file_name in files:
         if files[file_name]:
