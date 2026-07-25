@@ -172,7 +172,7 @@ Wprint("Checking for restorable Changes...")
 if check_temp_saves():
     Yprint("Found restorable Changes")
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
-elif not check_temp_saves():
+else:
     Gprint("No restorable Changes Found")
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
@@ -290,32 +290,15 @@ def is_filled_value(value):
 
 
 def _coerce_write_value(value):
-    """Convert a CLI write value from string to a JSON-friendly native type.
+    """Return the CLI write value as-is (always a string).
 
-    Command flags always arrive as strings. Without coercion, ``data WRITE t``
-    stores numbers as strings and breaks numeric comparisons against values
-    loaded from JSON (issue #44).
+    Command flags always arrive as strings.  Previous versions auto-converted
+    digit-looking strings to ``int``/``float`` and ``"true"``/``"false"`` to
+    ``bool``, which silently corrupted values such as phone numbers with
+    leading zeros (issue #84).  Storing raw strings keeps data faithful to
+    what the user typed.
     """
-    if not isinstance(value, str):
-        return value
-    lowered = value.strip().lower()
-    if lowered == "true":
-        return True
-    if lowered == "false":
-        return False
-    if lowered in ("null", "none"):
-        return None
-    # Integers first so "42" stays int; floats for values with a decimal point.
-    try:
-        if value.strip().startswith(("+", "-")):
-            body = value.strip()[1:]
-        else:
-            body = value.strip()
-        if body.isdigit():
-            return int(value.strip())
-        return float(value.strip())
-    except ValueError:
-        return value
+    return value
 
 
 def data_get_i(flags):
@@ -512,8 +495,12 @@ def myline_help_info(flags):
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
 def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
+    try:
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+    except Exception:
+        Rprint(f"Can't read {file_data_json} to check for unsaved changes")
+        return
     if saved_data != data:
         Rprint("Unsaved Changes between data and data.json")
     else:
@@ -614,20 +601,6 @@ def myline_restore_changes(flags):
 
 
 # fast Commands:
-def kill(flags):
-    if flags[0] != "f":
-        with open(file_data_json, 'r') as file:
-            saved_data = json.load(file)
-        if saved_data != data:
-            Rprint("Unsaved Changes between data and data.json")
-            Rprint("Killing process is canceled...")
-        else:
-            Gprint("No Unsaved Changes")
-            RRprint("Kill MyLine...")
-            sys.exit()
-    elif flags[0] == "f":
-        RRprint("Killing MyLine...")
-        sys.exit() 
 
 def repeat_last_cmd(flags):
     if history != []:
@@ -635,7 +608,7 @@ def repeat_last_cmd(flags):
         if cmd.endswith("::valid"):
             cmd = cmd.replace(" ::valid", "")
             try:
-                func = globals()[cmd]
+                func = globals()[cmd.lower()]
                 func(flags)
             except Exception:
                 Rprint("You can't repeat this command")
