@@ -273,13 +273,50 @@ def auto_save():
     if send_json(file_data_temp_json, data) == False:
         Rprint("Failed Auto-Save")
 
-def myline_restore_changes(flags):
-    Yprint("Restoring last Session")
+def add_cmd_to_history(cmd):
+    history.append(cmd)
+    
+    if send_json(file_cmdhistory_json, history) == False:
+        Rprint(f"Can't add {cmd} to cmdhistory.json")
+    
+
+# data Commands:
+def is_filled_value(value):
+    """Return whether a field contains an explicit, non-empty value."""
+    if isinstance(value, bool):
+        return True
+
+    return value not in ("", 0, {}, [])
+
+
+def _coerce_write_value(value):
+    """Convert a CLI write value from string to a JSON-friendly native type.
+
+    Command flags always arrive as strings. Without coercion, ``data WRITE t``
+    stores numbers as strings and breaks numeric comparisons against values
+    loaded from JSON (issue #44).
+    """
+    if not isinstance(value, str):
+        return value
+    lowered = value.strip().lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if lowered in ("null", "none"):
+        return None
+    # Integers first so "42" stays int; floats for values with a decimal point.
     try:
-        global data
-        data = temp_data
-    except Exception as e:
-        Yprint(f"Can't Restore Changes: {e}")
+        if value.strip().startswith(("+", "-")):
+            body = value.strip()[1:]
+        else:
+            body = value.strip()
+        if body.isdigit():
+            return int(value.strip())
+        return float(value.strip())
+    except ValueError:
+        return value
+
 
 def data_get_i(flags):
     parameter = flags[0]
@@ -296,13 +333,43 @@ def data_get_i(flags):
     except KeyError:
         Rprint("There is no parameter called >>" + parameter + "<<")
 
-def is_filled_value(value):
-    """Return whether a field contains an explicit, non-empty value."""
-    if isinstance(value, bool):
-        return True
-
-    return value not in ("", 0, {}, [])
-
+def data_get_im(flags):
+    try:
+        amount = int(flags[0]) -1
+    except Exception:
+        RRprint("Index Amount must me an Integer")
+        return
+    index_list = []
+    parameter = input("parameter >>> ")
+    value = input("value >>> ")
+    found = False
+    try:
+        for i in data:
+            field_value = i.get(parameter, "")
+            if isinstance(field_value, str) and value.lower() in field_value.lower():
+                found = True
+                Gprint(str(data.index(i)) + " is working for all conditions")
+                index_list.append(str(data.index(i)))
+        if not found:
+            Rprint("nothing works for all conditions")
+    except KeyError:
+        Rprint("There is no parameter called >>" + parameter + "<<")
+    for a in range(amount):
+            parameter = input("parameter >>> ")
+            value = input("value >>> ")
+            found = False
+            try:
+                for i in data:
+                    field_value = i.get(parameter, "")
+                    if isinstance(field_value, str) and value.lower() in field_value.lower():
+                        found = True
+                        Gprint(str(data.index(i)) + " is working for all conditions")
+                        index_list.append(str(data.index(i)))
+                if not found:
+                    Rprint("nothing works for all conditions")
+                    break
+            except KeyError:
+                Rprint("There is no parameter called >>" + parameter + "<<")
 
 def data_head_f(flags):
     index = flags[0]
@@ -363,35 +430,6 @@ def data_post_a(flags):
     if send_json(file_data_temp_json, []) == False:
         Rprint("Failed clearing Auto-Save Cache.")
 
-def _coerce_write_value(value):
-    """Convert a CLI write value from string to a JSON-friendly native type.
-
-    Command flags always arrive as strings. Without coercion, ``data WRITE t``
-    stores numbers as strings and breaks numeric comparisons against values
-    loaded from JSON (issue #44).
-    """
-    if not isinstance(value, str):
-        return value
-    lowered = value.strip().lower()
-    if lowered == "true":
-        return True
-    if lowered == "false":
-        return False
-    if lowered in ("null", "none"):
-        return None
-    # Integers first so "42" stays int; floats for values with a decimal point.
-    try:
-        if value.strip().startswith(("+", "-")):
-            body = value.strip()[1:]
-        else:
-            body = value.strip()
-        if body.isdigit():
-            return int(value.strip())
-        return float(value.strip())
-    except ValueError:
-        return value
-
-
 def data_write_t(flags):
     index = int(flags[0])
     parameter = flags[1]
@@ -399,6 +437,10 @@ def data_write_t(flags):
     data[index][parameter] = value
     auto_save()
     
+def data_write_post(flags):
+    data_write_t(flags)
+    data_post_a(flags)
+
 def data_inspect_struc(flags):
     for i in data[0]:
         Wprint(i)
@@ -406,9 +448,30 @@ def data_inspect_struc(flags):
 def data_inspect_count(flags):
     Wprint(f"Counted {len(data)} Objects in data")
 
+def data_card_new(flags):
+    index = len(data)
+    Wprint(f"Index for new Data Record: {index}")
+    new_card = {}
+    for p in data[0]:
+        now = datetime.datetime.now()
+        print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
+        value = input()
+        entry = {p: value}
+        new_card.update(entry)
+    data.append(new_card)
+    Gprint(f"Created New Data Record at index {index}")
+
+def data_card_delete(flags):
+    data.pop(int(flags[0]))
+    Rprint(f"Popped Data Record at index {flags[0]}")
+
+
+# net Commands:
 def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
 
+
+# ble Commands:
 def ble_head_devs(flags):
     # Accept "raw" / "loop" in either flag position (issue #50).
     normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
@@ -425,6 +488,8 @@ def ble_head_devs(flags):
     else:
         asyncio.run(scan(5.0, show_none))
 
+
+# myline Commands:
 def myline_help_c(flags):
     YYprint("For explanations visit the GitHub page:")
     YYprint("github.com/hoffmann-paul/myline/blob/main/README.md")
@@ -446,39 +511,13 @@ def myline_help_info(flags):
     Wprint("The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.")
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
-def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
-    if saved_data != data:
-        Rprint("Unsaved Changes between data and data.json")
-    else:
-        Gprint("No Unsaved Changes")
+def myline_help_paths(flags):
+    Wprint(f"data file: {file_data_json}")
+    Wprint(f"cmddata file: {file_cmddata_json}")
+    Wprint(f"company_ids file: {file_company_ids_json}")
+    Wprint(f"cmdhistory file: {file_cmdhistory_json}")
+    Wprint(f"data_temp file: {file_data_temp_json}")
 
-def kill(flags):
-    if flags[0] != "f":
-        with open(file_data_json, 'r') as file:
-            saved_data = json.load(file)
-        if saved_data != data:
-            Rprint("Unsaved Changes between data and data.json")
-            Rprint("Killing process is canceled...")
-        else:
-            Gprint("No Unsaved Changes")
-            RRprint("Kill MyLine...")
-            sys.exit()
-    elif flags[0] == "f":
-        RRprint("Killing MyLine...")
-        sys.exit() 
-
-def data_write_post(flags):
-    data_write_t(flags)
-    data_post_a(flags)
-
-def add_cmd_to_history(cmd):
-    history.append(cmd)
-    
-    if send_json(file_cmdhistory_json, history) == False:
-        Rprint(f"Can't add {cmd} to cmdhistory.json")
-    
 def myline_history_get(flags):
     if history != []:
         for i in history:
@@ -497,29 +536,13 @@ def myline_history_clear(flags):
     else:
         RRprint("Can't Clear History")
 
-def data_card_new(flags):
-    index = len(data)
-    Wprint(f"Index for new Data Record: {index}")
-    new_card = {}
-    for p in data[0]:
-        now = datetime.datetime.now()
-        print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
-        value = input()
-        entry = {p: value}
-        new_card.update(entry)
-    data.append(new_card)
-    Gprint(f"Created New Data Record at index {index}")
-
-def data_card_delete(flags):
-    data.pop(int(flags[0]))
-    Rprint(f"Popped Data Record at index {flags[0]}")
-
-def myline_help_paths(flags):
-    Wprint(f"data file: {file_data_json}")
-    Wprint(f"cmddata file: {file_cmddata_json}")
-    Wprint(f"company_ids file: {file_company_ids_json}")
-    Wprint(f"cmdhistory file: {file_cmdhistory_json}")
-    Wprint(f"data_temp file: {file_data_temp_json}")
+def myline_check_changes(flags):
+    with open(file_data_json, 'r') as file:
+        saved_data = json.load(file)
+    if saved_data != data:
+        Rprint("Unsaved Changes between data and data.json")
+    else:
+        Gprint("No Unsaved Changes")
 
 def myline_check_files(flags):
     files = {
@@ -535,6 +558,31 @@ def myline_check_files(flags):
         else:
             RRprint(f"An error occurred while trying to read {file_name}")
         
+def myline_restore_changes(flags):
+    Yprint("Restoring last Session")
+    try:
+        global data
+        data = temp_data
+    except Exception as e:
+        Yprint(f"Can't Restore Changes: {e}")
+
+
+# fast Commands:
+def kill(flags):
+    if flags[0] != "f":
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+        if saved_data != data:
+            Rprint("Unsaved Changes between data and data.json")
+            Rprint("Killing process is canceled...")
+        else:
+            Gprint("No Unsaved Changes")
+            RRprint("Kill MyLine...")
+            sys.exit()
+    elif flags[0] == "f":
+        RRprint("Killing MyLine...")
+        sys.exit() 
+
 def repeat_last_cmd(flags):
     if history != []:
         cmd = history[-1]
@@ -547,44 +595,6 @@ def repeat_last_cmd(flags):
                 Rprint("You can't repeat this command")
     else:
         Rprint("No command history found")
-
-def data_get_im(flags):
-    try:
-        amount = int(flags[0]) -1
-    except Exception:
-        RRprint("Index Amount must me an Integer")
-        return
-    index_list = []
-    parameter = input("parameter >>> ")
-    value = input("value >>> ")
-    found = False
-    try:
-        for i in data:
-            field_value = i.get(parameter, "")
-            if isinstance(field_value, str) and value.lower() in field_value.lower():
-                found = True
-                Gprint(str(data.index(i)) + " is working for all conditions")
-                index_list.append(str(data.index(i)))
-        if not found:
-            Rprint("nothing works for all conditions")
-    except KeyError:
-        Rprint("There is no parameter called >>" + parameter + "<<")
-    for a in range(amount):
-            parameter = input("parameter >>> ")
-            value = input("value >>> ")
-            found = False
-            try:
-                for i in data:
-                    field_value = i.get(parameter, "")
-                    if isinstance(field_value, str) and value.lower() in field_value.lower():
-                        found = True
-                        Gprint(str(data.index(i)) + " is working for all conditions")
-                        index_list.append(str(data.index(i)))
-                if not found:
-                    Rprint("nothing works for all conditions")
-                    break
-            except KeyError:
-                Rprint("There is no parameter called >>" + parameter + "<<")
 
 commands = {
     "data": {
