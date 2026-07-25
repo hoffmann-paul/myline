@@ -646,7 +646,7 @@ commands = {
     "data": {
         "GET": {
             "i": data_get_i,
-            "iM": data_get_im
+            "im": data_get_im
         },
         "HEAD": {
             "raw": data_head_raw,
