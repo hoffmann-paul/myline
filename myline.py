@@ -295,27 +295,44 @@ def _coerce_write_value(value):
     Command flags always arrive as strings. Without coercion, ``data WRITE t``
     stores numbers as strings and breaks numeric comparisons against values
     loaded from JSON (issue #44).
+
+    Rules (issue #84):
+      * Matching wrapping quotes force a **literal string** — so phone
+        numbers, the text true, IDs with leading zeros, etc. can be stored
+        exactly (use double or single quotes around the value).
+      * Bare true / false / null / none still become bool/None.
+      * Digit strings with a **leading zero** (length > 1) stay strings so
+        values like 0491701234567 are not silently turned into ints.
+      * Other numeric literals still coerce to int / float.
     """
     if not isinstance(value, str):
         return value
-    lowered = value.strip().lower()
+    s = value.strip()
+    # Explicit string escape: "0491..." or 'true' keeps the inner text.
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+        return s[1:-1]
+    lowered = s.lower()
     if lowered == "true":
         return True
     if lowered == "false":
         return False
     if lowered in ("null", "none"):
         return None
-    # Integers first so "42" stays int; floats for values with a decimal point.
     try:
-        if value.strip().startswith(("+", "-")):
-            body = value.strip()[1:]
+        if s.startswith(("+", "-")):
+            body = s[1:]
         else:
-            body = value.strip()
+            body = s
         if body.isdigit():
-            return int(value.strip())
-        return float(value.strip())
+            # Leading zeros → keep as string (phone numbers, zero-padded IDs).
+            # Plain "0" / "42" / "-7" still become int for issue #44.
+            if len(body) > 1 and body.startswith("0"):
+                return s
+            return int(s)
+        return float(s)
     except ValueError:
         return value
+
 
 
 def data_get_i(flags):
