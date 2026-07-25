@@ -169,10 +169,11 @@ else:
     Yprint("Type \"myline check files\" for detailed informations")
 Wprint("")
 Wprint("Checking for restorable Changes...")
-if check_temp_saves():
+has_temp_saves = check_temp_saves()
+if has_temp_saves:
     Yprint("Found restorable Changes")
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
-elif not check_temp_saves():
+elif not has_temp_saves:
     Gprint("No restorable Changes Found")
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
@@ -447,8 +448,12 @@ def myline_help_info(flags):
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
 def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
+    try:
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        Rprint(f"Cannot read saved data: {e}")
+        return
     if saved_data != data:
         Rprint("Unsaved Changes between data and data.json")
     else:
