@@ -511,12 +511,38 @@ def myline_help_info(flags):
     Wprint("The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.")
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
-def myline_help_paths(flags):
-    Wprint(f"data file: {file_data_json}")
-    Wprint(f"cmddata file: {file_cmddata_json}")
-    Wprint(f"company_ids file: {file_company_ids_json}")
-    Wprint(f"cmdhistory file: {file_cmdhistory_json}")
-    Wprint(f"data_temp file: {file_data_temp_json}")
+def myline_check_changes(flags):
+    with open(file_data_json, 'r') as file:
+        saved_data = json.load(file)
+    if saved_data != data:
+        Rprint("Unsaved Changes between data and data.json")
+    else:
+        Gprint("No Unsaved Changes")
+
+def kill(flags):
+    force = bool(flags) and flags[0] == "f"
+    if not force:
+        try:
+            with open(file_data_json, 'r') as file:
+                saved_data = json.load(file)
+        except Exception:
+            Rprint(f"Can't read {file_data_json} to check for unsaved changes")
+            Rprint("Killing process is canceled... (use kill f to force)")
+            return
+        if saved_data != data:
+            Rprint("Unsaved Changes between data and data.json")
+            Rprint("Killing process is canceled...")
+        else:
+            Gprint("No Unsaved Changes")
+            RRprint("Kill MyLine...")
+            sys.exit()
+    else:
+        RRprint("Killing MyLine...")
+        sys.exit()
+
+def data_write_post(flags):
+    data_write_t(flags)
+    data_post_a(flags)
 
 def myline_history_get(flags):
     if history != []:
@@ -536,21 +562,41 @@ def myline_history_clear(flags):
     else:
         RRprint("Can't Clear History")
 
-def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
-    if saved_data != data:
-        Rprint("Unsaved Changes between data and data.json")
-    else:
-        Gprint("No Unsaved Changes")
+def data_card_new(flags):
+    if not data:
+        Rprint("No existing data records — cannot infer fields for a new card")
+        Rprint("Add at least one record structure first, or restore from a save")
+        return
+    index = len(data)
+    Wprint(f"Index for new Data Record: {index}")
+    new_card = {}
+    for p in data[0]:
+        now = datetime.datetime.now()
+        print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
+        value = input()
+        entry = {p: value}
+        new_card.update(entry)
+    data.append(new_card)
+    Gprint(f"Created New Data Record at index {index}")
+
+def data_card_delete(flags):
+    data.pop(int(flags[0]))
+    Rprint(f"Popped Data Record at index {flags[0]}")
+
+def myline_help_paths(flags):
+    Wprint(f"data file: {file_data_json}")
+    Wprint(f"cmddata file: {file_cmddata_json}")
+    Wprint(f"company_ids file: {file_company_ids_json}")
+    Wprint(f"cmdhistory file: {file_cmdhistory_json}")
+    Wprint(f"data_temp file: {file_data_temp_json}")
 
 def myline_check_files(flags):
     files = {
         "cmddata.json": loaded_cmddata_json,
         "cmdhistory.json": loaded_cmdhistory_json,
         "company_ids.json": loaded_company_ids_json,
-        "data_temp.json": loaded_data_json,
-        "data.json": loaded_data_json
+        "data_temp.json": loaded_data_temp_json,
+        "data.json": loaded_data_json,
     }
     for file_name in files:
         if files[file_name]:
