@@ -635,7 +635,7 @@ def repeat_last_cmd(flags):
         if cmd.endswith("::valid"):
             cmd = cmd.replace(" ::valid", "")
             try:
-                func = globals()[cmd]
+                func = globals()[cmd.lower()]
                 func(flags)
             except Exception:
                 Rprint("You can't repeat this command")
