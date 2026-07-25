@@ -10,15 +10,21 @@ import argparse
 import platform
 import sys
 
-# Tab completion is provided by the stdlib ``readline`` module on Unix
-# and macOS. On Windows ``readline`` is not bundled with CPython by default,
-# so we degrade gracefully — typing still works, Tab just falls through.
+# Tab completion needs a readline implementation. Prefer the third-party
+# ``gnureadline`` package when installed — on macOS the stdlib ``readline``
+# module is almost always libedit/editline, and ``pip install gnureadline``
+# alone does nothing unless we import it explicitly (the stdlib name still
+# shadows it). Fall back to stdlib, then degrade gracefully on Windows.
 try:
-    import readline  # noqa: F401  (presence is enough; functions used below)
+    import gnureadline as readline  # type: ignore[no-redef]
     _READLINE_AVAILABLE = True
-except ImportError:  # pragma: no cover - exercised on Windows without pyreadline
-    readline = None  # type: ignore[assignment]
-    _READLINE_AVAILABLE = False
+except ImportError:
+    try:
+        import readline  # noqa: F401
+        _READLINE_AVAILABLE = True
+    except ImportError:  # pragma: no cover - Windows without pyreadline
+        readline = None  # type: ignore[assignment]
+        _READLINE_AVAILABLE = False
 
 # --- SETUP VARIABLES (defaults; overridable via CLI) ---
 # Precedence for each path: CLI argument > default under storage/
@@ -694,6 +700,10 @@ def _line_completer(text, state):
     buffer already contains the partial token, so counting the whole buffer
     would mistake ``da<Tab>`` for a sub-command lookup.
 
+    Matches are returned with a trailing space so readline advances to the
+    next word after a unique completion (``da`` → ``data ``, ready for
+    ``GET``). Without the space, a second Tab re-lists the same keyword.
+
     Returns ``None`` when no candidates match (which makes readline
     beep instead of inserting whitespace).
     """
@@ -715,21 +725,42 @@ def _line_completer(text, state):
         else:
             # Flags / paths — no command completion at this depth.
             candidates = []
+        # Stable order so double-Tab listings are predictable.
+        candidates = sorted(candidates)
         if 0 <= state < len(candidates):
-            return candidates[state]
+            return candidates[state] + " "
         return None
     except Exception:
         # Never let a completion failure crash the REPL.
         return None
 
 
-def _readline_tab_binding(readline_module):
-    """Return the Tab binding syntax for GNU readline or macOS libedit."""
-    backend = getattr(readline_module, "backend", "")
+def _is_libedit(readline_module):
+    """True when ``readline_module`` is macOS/NetBSD editline (libedit)."""
+    backend = getattr(readline_module, "backend", "") or ""
     module_doc = getattr(readline_module, "__doc__", "") or ""
-    if backend == "editline" or "libedit" in module_doc.lower():
+    name = getattr(readline_module, "__name__", "") or ""
+    if name == "gnureadline":
+        return False
+    return backend == "editline" or "libedit" in module_doc.lower()
+
+
+def _readline_tab_binding(readline_module):
+    """Return the preferred Tab binding for GNU readline or macOS libedit."""
+    if _is_libedit(readline_module):
+        # libedit uses the editline ``bind`` syntax, not GNU's ``tab:``.
         return "bind ^I rl_complete"
     return "tab: complete"
+
+
+def _libedit_tab_bindings():
+    """Candidate libedit bind lines (first that sticks wins at runtime)."""
+    # Different Python/libedit builds accept slightly different forms.
+    return (
+        "bind ^I rl_complete",
+        r"bind \t rl_complete",
+        "bind ^I complete",
+    )
 
 
 def _install_completer():
@@ -737,44 +768,73 @@ def _install_completer():
 
     The Tab binding syntax differs across readline implementations:
 
-      * GNU readline (Linux): ``tab: complete``
-      * libedit / NetBSD editline (macOS): ``bind ^I rl_complete``
+      * GNU readline (Linux / gnureadline): ``tab: complete``
+      * libedit / NetBSD editline (macOS stdlib): ``bind ^I rl_complete``
 
-    We try the syntax chosen by :func:`_readline_tab_binding` first,
-    then fall back to the alternative so a misdetected backend (older
-    Python, an unusual ``readline`` shim) still gets Tab-bound. Without
-    a successful bind the Tab key is not intercepted and the terminal
-    passes the literal character through, which on macOS appears as a
-    stray ``[`` at the start of the line.
+    We apply the right family of bindings for the detected backend. On
+    libedit we try a few equivalent forms because ``parse_and_bind``
+    usually does *not* raise on a no-op string — a single wrong line
+    silently leaves Tab unbound.
     """
     if not _READLINE_AVAILABLE or args.no_completion:
         return
     try:
         readline.set_completer(_line_completer)
-        primary = _readline_tab_binding(readline)
-        fallback = (
-            "tab: complete" if primary == "bind ^I rl_complete"
-            else "bind ^I rl_complete"
-        )
-        for binding in (primary, fallback):
+        # Word breaks: keep command tokens simple (space-separated).
+        try:
+            readline.set_completer_delims(" \t\n")
+        except Exception:
+            pass
+
+        if _is_libedit(readline):
+            for binding in _libedit_tab_bindings():
+                try:
+                    readline.parse_and_bind(binding)
+                except Exception:
+                    continue
+        else:
             try:
-                readline.parse_and_bind(binding)
-                break
+                readline.parse_and_bind("tab: complete")
             except Exception:
-                # Try the next syntax.
-                continue
+                # Last-ditch: maybe this is a mislabelled libedit build.
+                for binding in _libedit_tab_bindings():
+                    try:
+                        readline.parse_and_bind(binding)
+                    except Exception:
+                        continue
     except Exception:
         # readline can raise on broken TERM / very minimal builds; the
         # REPL stays usable even if Tab is just a no-op.
         pass
 
 
+def _repl_prompt(now):
+    """Build a readline-safe coloured prompt.
+
+    ANSI colour codes must be wrapped in ``\\001`` / ``\\002`` (readline's
+    RL_PROMPT_START_IGNORE / RL_PROMPT_END_IGNORE) so the library can
+    compute the *visible* prompt width. Without that, libedit redisplays
+    the line after Tab with the wrong column offset — which shows up as a
+    stray ``[`` at the start of the line and a ``]`` after the cursor
+    (leftover characters from the ``[HH:MM:SS]`` clock in the prompt).
+
+    The prompt is passed to ``input()`` (not printed first) so readline
+    owns the full line and can redraw it correctly on completion.
+    """
+    blue = "\033[34m"
+    reset = "\033[0m"
+    # \001...\002 = non-printing; visible text stays outside.
+    return (
+        f"\001{blue}\002@MyLine {version} [{now.strftime('%H:%M:%S')}] >>> "
+        f"\001{reset}\002"
+    )
+
+
 _install_completer()
 
 while True:
     now = datetime.datetime.now()
-    print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] >>> ", end="")
-    raw = input()
+    raw = input(_repl_prompt(now))
     
     # Dispatcher
     try:

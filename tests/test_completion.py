@@ -61,8 +61,11 @@ def _load_myline_helpers():
         "complete_sub_sub_keywords": namespace["_complete_sub_sub_keywords"],
         "line_completer": namespace["_line_completer"],
         "readline_tab_binding": namespace["_readline_tab_binding"],
+        "is_libedit": namespace["_is_libedit"],
+        "repl_prompt": namespace["_repl_prompt"],
         "commands": namespace["commands"],
         "fast_commands": namespace["fast_commands"],
+        "version": namespace["version"],
     }
 
 
@@ -119,20 +122,50 @@ class TestCompletionHelpers(unittest.TestCase):
 
 class TestReadlineBinding(unittest.TestCase):
     def test_gnu_readline_uses_standard_binding(self):
-        module = types.SimpleNamespace(backend="readline", __doc__="GNU readline")
+        module = types.SimpleNamespace(
+            backend="readline", __doc__="GNU readline", __name__="readline"
+        )
         self.assertEqual(HELPERS["readline_tab_binding"](module), "tab: complete")
+        self.assertFalse(HELPERS["is_libedit"](module))
 
     def test_libedit_backend_uses_editline_binding(self):
-        module = types.SimpleNamespace(backend="editline", __doc__="")
+        module = types.SimpleNamespace(
+            backend="editline", __doc__="", __name__="readline"
+        )
+        self.assertEqual(
+            HELPERS["readline_tab_binding"](module), "bind ^I rl_complete"
+        )
+        self.assertTrue(HELPERS["is_libedit"](module))
+
+    def test_older_macos_python_detects_libedit_from_doc(self):
+        module = types.SimpleNamespace(
+            __doc__="Importing this module enables libedit", __name__="readline"
+        )
         self.assertEqual(
             HELPERS["readline_tab_binding"](module), "bind ^I rl_complete"
         )
 
-    def test_older_macos_python_detects_libedit_from_doc(self):
-        module = types.SimpleNamespace(__doc__="Importing this module enables libedit")
-        self.assertEqual(
-            HELPERS["readline_tab_binding"](module), "bind ^I rl_complete"
+    def test_gnureadline_never_treated_as_libedit(self):
+        # Even if a weird doc string mentions libedit, the package name wins.
+        module = types.SimpleNamespace(
+            backend="", __doc__="libedit leftover", __name__="gnureadline"
         )
+        self.assertFalse(HELPERS["is_libedit"](module))
+        self.assertEqual(HELPERS["readline_tab_binding"](module), "tab: complete")
+
+
+class TestReplPrompt(unittest.TestCase):
+    def test_ansi_wrapped_for_readline_width(self):
+        import datetime
+
+        prompt = HELPERS["repl_prompt"](datetime.datetime(2026, 1, 1, 20, 36, 39))
+        # Non-printing markers around colour codes.
+        self.assertIn("\001\033[34m\002", prompt)
+        self.assertIn("\001\033[0m\002", prompt)
+        # Visible clock text (the source of the stray [ / ] bug when
+        # width is miscounted) must sit *outside* the ignore markers.
+        self.assertIn("[20:36:39]", prompt)
+        self.assertIn(f"@MyLine {HELPERS['version']}", prompt)
 
 
 class TestLineCompleter(unittest.TestCase):
@@ -167,18 +200,26 @@ class TestLineCompleter(unittest.TestCase):
         return out
 
     def test_complete_top_level_partial_in_line_buffer(self):
-        self.assertEqual(self._candidates("da", "da"), ["data"])
+        # Trailing space advances readline to the next word after Tab.
+        self.assertEqual(self._candidates("da", "da"), ["data "])
 
     def test_complete_sub_after_data(self):
-        self.assertEqual(self._candidates("data W", "W"), ["WRITE"])
+        self.assertEqual(self._candidates("data W", "W"), ["WRITE "])
 
     def test_complete_sub_sub(self):
         # Use a prefix that doesn't match `iM` so the assertion stays
         # stable even if upstream adds more leaves to data GET later.
-        self.assertEqual(self._candidates("data GET i", "i"), ["i", "iM"])
+        self.assertEqual(self._candidates("data GET i", "i"), ["i ", "iM "])
 
     def test_complete_empty_token_after_space(self):
-        self.assertIn("WRITE", self._candidates("data ", ""))
+        self.assertIn("WRITE ", self._candidates("data ", ""))
+
+    def test_unique_completion_does_not_relist_same_keyword(self):
+        # After ``da`` → ``data ``, the buffer ends with a space so the
+        # next Tab looks up *sub*-keywords — not ``data`` again.
+        self.assertNotIn("data ", self._candidates("data ", ""))
+        subs = self._candidates("data ", "")
+        self.assertTrue(any(s.startswith("GET") or s.startswith("WRITE") for s in subs))
 
     def test_no_completion_for_flags(self):
         self.assertEqual(
