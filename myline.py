@@ -361,7 +361,7 @@ def data_get_im(flags):
             try:
                 for i in data:
                     field_value = i.get(parameter, "")
-                    if isinstance(field_value, str) and value.lower() in field_value.lower():
+                    if isinstance(field_value, str) and value.lower() in field_value.lower() and data.index(i) in index_list:
                         found = True
                         Gprint(str(data.index(i)) + " is working for all conditions")
                         index_list.append(str(data.index(i)))
