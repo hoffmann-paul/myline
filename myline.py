@@ -512,13 +512,19 @@ def myline_help_info(flags):
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
 def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
+    try:
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print(f"Can't read {file_data_json} to check for unsaved changes")
+        return
+
     if saved_data != data:
         Rprint("Unsaved Changes between data and data.json")
     else:
         Gprint("No Unsaved Changes")
 
+        
 def kill(flags):
     force = bool(flags) and flags[0] == "f"
     if not force:
