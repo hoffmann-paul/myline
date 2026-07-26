@@ -540,6 +540,7 @@ def kill(flags):
         RRprint("Killing MyLine...")
         sys.exit()
 
+        
 def data_write_post(flags):
     data_write_t(flags)
     data_post_a(flags)
@@ -613,21 +614,6 @@ def myline_restore_changes(flags):
         Yprint(f"Can't Restore Changes: {e}")
 
 
-# fast Commands:
-def kill(flags):
-    if flags[0] != "f":
-        with open(file_data_json, 'r') as file:
-            saved_data = json.load(file)
-        if saved_data != data:
-            Rprint("Unsaved Changes between data and data.json")
-            Rprint("Killing process is canceled...")
-        else:
-            Gprint("No Unsaved Changes")
-            RRprint("Kill MyLine...")
-            sys.exit()
-    elif flags[0] == "f":
-        RRprint("Killing MyLine...")
-        sys.exit() 
 
 def repeat_last_cmd(flags):
     if history != []:
