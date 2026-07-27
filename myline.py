@@ -605,12 +605,20 @@ def myline_check_files(flags):
             RRprint(f"An error occurred while trying to read {file_name}")
         
 def myline_restore_changes(flags):
+    """Restore session from data_temp.json; never set data to 0 (#83)."""
     Yprint("Restoring last Session")
-    try:
-        global data
-        data = temp_data
-    except Exception as e:
-        Yprint(f"Can't Restore Changes: {e}")
+    global data, temp_data
+    if temp_data == 0 or not isinstance(temp_data, list):
+        Rprint(
+            f"Nothing to restore — {file_data_temp_json} is missing, "
+            "unreadable, or empty."
+        )
+        return
+    if temp_data == []:
+        Yprint("data_temp.json is empty — nothing to restore.")
+        return
+    data = list(temp_data)
+    Gprint(f"Restored {len(data)} record(s) from last session.")
 
 
 # fast Commands:
