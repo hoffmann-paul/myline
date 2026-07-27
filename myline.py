@@ -169,10 +169,11 @@ else:
     Yprint("Type \"myline check files\" for detailed informations")
 Wprint("")
 Wprint("Checking for restorable Changes...")
-if check_temp_saves():
+_has_restorable = check_temp_saves()
+if _has_restorable:
     Yprint("Found restorable Changes")
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
-elif not check_temp_saves():
+else:
     Gprint("No restorable Changes Found")
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
