@@ -2,6 +2,9 @@
 MyLine is my own command-line tool.
 
 ## Get started
+
+Windows users: see **[WINDOWS_TESTING.md](WINDOWS_TESTING.md)** for a short smoke checklist (#76).
+
 1. Download all files from github.com/hoffmann-paul/myline
 2. Install everything in the requirements.txt
 3. Run MyLine: `python myline.py`
