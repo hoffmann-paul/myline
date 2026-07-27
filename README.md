@@ -2,6 +2,9 @@
 MyLine is my own command-line tool.
 
 ## Get started
+
+See **[TESTING.md](TESTING.md)** for a cross-platform checklist (macOS / Linux / Windows) and how to run unit tests.
+
 1. Download all files from github.com/hoffmann-paul/myline
 2. Install everything in the requirements.txt
 3. Run MyLine: `python myline.py`
