@@ -169,10 +169,11 @@ else:
     Yprint("Type \"myline check files\" for detailed informations")
 Wprint("")
 Wprint("Checking for restorable Changes...")
-if check_temp_saves():
+_has_restorable = check_temp_saves()
+if _has_restorable:
     Yprint("Found restorable Changes")
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
-elif not check_temp_saves():
+else:
     Gprint("No restorable Changes Found")
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
@@ -512,8 +513,12 @@ def myline_help_info(flags):
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
 def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
+    try:
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+    except Exception:
+        Rprint(f"Can't read {file_data_json} to check for unsaved changes")
+        return
     if saved_data != data:
         Rprint("Unsaved Changes between data and data.json")
     else:
@@ -605,29 +610,28 @@ def myline_check_files(flags):
             RRprint(f"An error occurred while trying to read {file_name}")
         
 def myline_restore_changes(flags):
+    """Restore auto-saved session data from data_temp.json.
+
+    Refuses to run when temp_data is missing (0) or not a list — otherwise
+    ``data = 0`` would brick every subsequent data command (issue #83).
+    """
     Yprint("Restoring last Session")
-    try:
-        global data
-        data = temp_data
-    except Exception as e:
-        Yprint(f"Can't Restore Changes: {e}")
+    global data, temp_data
+    if temp_data == 0 or not isinstance(temp_data, list):
+        Rprint(
+            f"Nothing to restore — {file_data_temp_json} is missing, "
+            "unreadable, or empty."
+        )
+        Rprint("Make a change first so auto-save can write data_temp.json.")
+        return
+    if temp_data == []:
+        Yprint("data_temp.json is empty — nothing to restore.")
+        return
+    data = list(temp_data)  # shallow copy of the list of records
+    Gprint(f"Restored {len(data)} record(s) from last session.")
 
 
 # fast Commands:
-def kill(flags):
-    if flags[0] != "f":
-        with open(file_data_json, 'r') as file:
-            saved_data = json.load(file)
-        if saved_data != data:
-            Rprint("Unsaved Changes between data and data.json")
-            Rprint("Killing process is canceled...")
-        else:
-            Gprint("No Unsaved Changes")
-            RRprint("Kill MyLine...")
-            sys.exit()
-    elif flags[0] == "f":
-        RRprint("Killing MyLine...")
-        sys.exit() 
 
 def repeat_last_cmd(flags):
     if history != []:
