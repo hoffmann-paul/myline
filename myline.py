@@ -557,6 +557,9 @@ def inv_nav_get(flags):
     else:
         Rprint("You are in the main path")
 
+def inv_find_loc(flags):
+    ...
+
 def inv_write_new(flags):
     if session["sub_sub_session"] != "":
         global inventory
@@ -884,6 +887,9 @@ commands = {
             "to": inv_nav_to,
             "main": inv_nav_main,
             "GET": inv_nav_get
+        },
+        "find": {
+            "loc": inv_find_loc
         },
         "WRITE": {
             "new": inv_write_new,

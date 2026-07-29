@@ -40,6 +40,7 @@ For a list of all commands, type: `myline help c`
 | `inv nav to` | `path` |  | Navigate to a new Path in the inventory hirachy |
 | `inv nav main` |  |  | Navigate to the top Level of the inventory hirachy |
 | `inv nav GET` |  |  | Shows the current path in the inventory |
+| `inv find loc` | `item` | `path` | Search for an `item` in the main Inventory and prints out the Location, by adding `path` the programm only searches in the current navigated path |
 | `inv WRITE add` | `item` |  | Adds a new Item in the current path |
 | `inv WRITE del` | `item` |  | Deletes a item in the current path |
 | `inv inspect items` |  | `main` | Lists all items in the current path, if you add `main` it list every item |
