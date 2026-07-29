@@ -551,6 +551,12 @@ def inv_nav_main(flags):
     send_json(file_inventory_session_json, session)
     Gprint("Navigated to top Path")
 
+def inv_nav_get(flags):
+    if session["session"] != "":
+        Wprint(f"Current Path is: {session["session"]}/{session["sub_session"]}/{session["sub_sub_session"]}")
+    else:
+        Rprint("You are in the main path")
+
 
 # net Commands:
 def net_pg_uop(flags):
@@ -816,7 +822,8 @@ commands = {
     "inv": {
         "nav": {
             "to": inv_nav_to,
-            "main": inv_nav_main
+            "main": inv_nav_main,
+            "GET": inv_nav_get
         }
     },
     "net": {
