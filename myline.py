@@ -567,7 +567,7 @@ def inv_write_new(flags):
         Rprint("You have to Navigate to a full Path to create a new item")
 
 def inv_write_del(flags):
-    ...
+    ... # Add Logic for this Command
 
 def inv_inspect_items(flags):
     global inventory
