@@ -558,7 +558,62 @@ def inv_nav_get(flags):
         Rprint("You are in the main path")
 
 def inv_find_loc(flags):
-    ...
+    normalized = [str(f).lower() for f in flags[1:] if f is not None and str(f) != ""]
+    content_to_search = None
+
+    # Get all Content that needs to be searched
+
+    if "path" not in normalized:
+        content_to_search = inventory
+    else:
+        if session["session"] != "":
+            if session["sub_session"] != "":
+                if session["sub_sub_session"] != "":
+                    content_to_search = inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]]
+                else:
+                    content_to_search = inventory[session["session"]][session["sub_session"]]
+            else:
+                content_to_search = inventory[session["session"]]
+        else: 
+            content_to_search = inventory
+
+    # The actual Search
+    cts = content_to_search # This is just a shortening for easier developing
+    item = flags[0]
+    Wprint("")
+
+    if isinstance(cts, dict):
+        for i in cts:
+            Wprint(f"{i}:")
+            if isinstance(cts[i], dict):
+                for i1 in cts[i]:
+                    Wprint(f"  {i1}:")
+                    if isinstance(cts[i][i1], dict):
+                        for i2 in cts[i][i1]:
+                            Wprint(f"    {i2}:")
+                            for i3 in cts[i][i1][i2]:
+                                if item.lower() in i3.lower():
+                                    Gprint(f">>>>>>> {i3}")
+                                else:
+                                    Wprint(f"      > {i3}")
+                    elif isinstance(cts[i][i1], list):
+                        for i2 in cts[i][i1]:
+                            if item.lower() in i2.lower():
+                                Gprint(f">>>>> {i2}")
+                            else:
+                                Wprint(f"    > {i2}")
+            elif isinstance(cts[i], list):
+                for i in cts[i]:
+                    if item.lower() in i.lower():
+                        Gprint(f">>> {i}")
+                    else:
+                        Wprint(f"  > {i}")
+    elif isinstance(cts, list):
+        for i in cts:
+            if item.lower() in i.lower():
+                Gprint(f"> {i}")
+            else:
+                Wprint(f"> {i}")
 
 def inv_write_new(flags):
     if session["sub_sub_session"] != "":
