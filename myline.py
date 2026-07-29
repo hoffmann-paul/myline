@@ -169,6 +169,22 @@ except Exception:
     failload = True
     temp_data = 0
 
+try:
+    with open(file_inventory_table_json, 'r') as file:
+        inventory = json.load(file)
+        loaded_inventory_table_json = True
+except Exception:
+    failload = True
+    inventory = {}
+
+try:
+    with open(file_inventory_session_json, 'r') as file:
+        session = json.load(file)
+        loaded_inventory_sessioin_json = True
+except Exception:
+    failload = True
+    session = {}
+
 def check_temp_saves():
     if temp_data != 0:
         if temp_data == []:
@@ -667,6 +683,8 @@ def myline_help_paths(flags):
     Wprint(f"company_ids file: {file_company_ids_json}")
     Wprint(f"cmdhistory file: {file_cmdhistory_json}")
     Wprint(f"data_temp file: {file_data_temp_json}")
+    Wprint(f"inventory table file: {file_inventory_table_json}")
+    Wprint(f"inventory session file: {file_inventory_session_json}")
 
 def myline_check_files(flags):
     files = {
@@ -675,6 +693,8 @@ def myline_check_files(flags):
         "company_ids.json": loaded_company_ids_json,
         "data_temp.json": loaded_data_temp_json,
         "data.json": loaded_data_json,
+        "inventory/table.json": loaded_inventory_table_json,
+        "inventory/session.json": loaded_inventory_sessioin_json
     }
     for file_name in files:
         if files[file_name]:
