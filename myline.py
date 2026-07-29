@@ -24,6 +24,7 @@ DEFAULT_INVENTORY_SESSION_JSON = 'storage/inventory/session.json'
 version = "v1.0.0"
 data = []
 history = []
+session = {}
 loaded_cmddata_json = False
 loaded_cmdhistory_json = False
 loaded_company_ids_json = False
@@ -183,7 +184,6 @@ try:
         loaded_inventory_sessioin_json = True
 except Exception:
     failload = True
-    session = {}
 
 def check_temp_saves():
     if temp_data != 0:
@@ -540,10 +540,16 @@ def inv_nav_to(flags):
             Gprint(f"You Navigated to {session["session"]}/{session["sub_session"]}/{flags[0]}")
 
         else:
-            Rprint("You already navigated to a path")
+            Rprint("You already navigated to a path, Use \"inv nav main\" to get to top level")
 
     except KeyError:
         Rprint("This path doesn't exists")
+
+def inv_nav_main(flags):
+    global session
+    session = { "session": "", "sub_session": "", "sub_sub_session": "" }
+    send_json(file_inventory_session_json, session)
+    Gprint("Navigated to top Path")
 
 
 # net Commands:
@@ -809,7 +815,8 @@ commands = {
     },
     "inv": {
         "nav": {
-            "to": inv_nav_to
+            "to": inv_nav_to,
+            "main": inv_nav_main
         }
     },
     "net": {

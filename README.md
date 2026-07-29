@@ -38,6 +38,7 @@ For a list of all commands, type: `myline help c`
 | `data inspect struc` |  |  | Shows a list of all Parameters |
 | `data inspect count` |  |  | Counts all Data Records |
 | `inv nav to` | `path` |  | Navigate to a new Path in the inventory hirachy |
+| `inv nav main` |  |  | Navigate to the top Level of the inventory hirachy |
 | `net pg uop` | `url` `port` |  | Tries to connect to a `url` on a specific `port` |
 | `ble HEAD devs` |  | `raw` `loop` | Scans BLE Signals and shows a list of Name; Local-Name; rssi; tx_power; MAC-Address; by adding `raw` it also shows devices where name == None, by adding `loop` it rescans every Second |
 | `myline help c` |  |  | Shows a list of all Commands |
