@@ -94,6 +94,9 @@ def _prefix():
 
 def Gprint(string):
     print(f"\033[32m{_prefix()} {string}\033[0m")
+
+def rGprint(string):
+    print(f"\033[32m{string}\033[0m")
  
 def GGprint(string):
     print(f"\033[0;42m{_prefix()} {string}\033[0m")
@@ -118,6 +121,9 @@ def BBprint(string):
 
 def Wprint(string):
     print(f"\033[0m{_prefix()} {string}\033[0m")
+
+def rWprint(string):
+    print(f"\033[0m{string}\033[0m")
  
 def WWprint(string):
     print(f"\033[0;47;30m{_prefix()} {string}\033[0m")
@@ -584,36 +590,36 @@ def inv_find_loc(flags):
 
     if isinstance(cts, dict):
         for i in cts:
-            Wprint(f"{i}:")
+            rWprint(f"{i}:")
             if isinstance(cts[i], dict):
                 for i1 in cts[i]:
-                    Wprint(f"  {i1}:")
+                    rWprint(f"  {i1}:")
                     if isinstance(cts[i][i1], dict):
                         for i2 in cts[i][i1]:
-                            Wprint(f"    {i2}:")
+                            rWprint(f"    {i2}:")
                             for i3 in cts[i][i1][i2]:
                                 if item.lower() in i3.lower():
-                                    Gprint(f">>>>>>> {i3}")
+                                    rGprint(f">>>>>>> {i3}")
                                 else:
-                                    Wprint(f"      > {i3}")
+                                    rWprint(f"      > {i3}")
                     elif isinstance(cts[i][i1], list):
                         for i2 in cts[i][i1]:
                             if item.lower() in i2.lower():
-                                Gprint(f">>>>> {i2}")
+                                rGprint(f">>>>> {i2}")
                             else:
-                                Wprint(f"    > {i2}")
+                                rWprint(f"    > {i2}")
             elif isinstance(cts[i], list):
                 for i in cts[i]:
                     if item.lower() in i.lower():
-                        Gprint(f">>> {i}")
+                        rGprint(f">>> {i}")
                     else:
-                        Wprint(f"  > {i}")
+                        rWprint(f"  > {i}")
     elif isinstance(cts, list):
         for i in cts:
             if item.lower() in i.lower():
-                Gprint(f"> {i}")
+                rGprint(f"> {i}")
             else:
-                Wprint(f"> {i}")
+                rWprint(f"> {i}")
 
 def inv_write_new(flags):
     if session["sub_sub_session"] != "":
