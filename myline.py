@@ -518,6 +518,34 @@ def data_card_delete(flags):
     Rprint(f"Popped Data Record at index {flags[0]}")
 
 
+# inv Commands:
+def inv_nav_to(flags):
+    try:
+        if session["session"] == "":
+            inventory[flags[0]]
+            session["session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {flags[0]}")
+
+        elif session["sub_session"] == "":
+            inventory[session["session"]][flags[0]]
+            session["sub_session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {session["session"]}/{flags[0]}")
+
+        elif session["sub_sub_session"] == "":
+            inventory[session["session"]][session["sub_session"]][flags[0]]
+            session["sub_sub_session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {session["session"]}/{session["sub_session"]}/{flags[0]}")
+
+        else:
+            Rprint("You already navigated to a path")
+
+    except KeyError:
+        Rprint("This path doesn't exists")
+
+
 # net Commands:
 def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
@@ -777,6 +805,11 @@ commands = {
         "inspect": {
             "struc": data_inspect_struc,
             "count": data_inspect_count
+        }
+    },
+    "inv": {
+        "nav": {
+            "to": inv_nav_to
         }
     },
     "net": {
