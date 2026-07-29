@@ -24,6 +24,7 @@ DEFAULT_INVENTORY_SESSION_JSON = 'storage/inventory/session.json'
 version = "v1.0.0"
 data = []
 history = []
+inventory = {}
 session = {}
 loaded_cmddata_json = False
 loaded_cmdhistory_json = False
@@ -176,7 +177,6 @@ try:
         loaded_inventory_table_json = True
 except Exception:
     failload = True
-    inventory = {}
 
 try:
     with open(file_inventory_session_json, 'r') as file:
@@ -558,12 +558,19 @@ def inv_nav_get(flags):
         Rprint("You are in the main path")
 
 def inv_write_new(flags):
-    ...
+    if session["sub_sub_session"] != "":
+        global inventory
+        inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]].append(flags[0])
+        send_json(file_inventory_table_json, inventory)
+
+    else:
+        Rprint("You have to Navigate to a full Path to create a new item")
 
 def inv_write_del(flags):
     ...
 
 def inv_inspect_items(flags):
+    global inventory
     normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
     if "main" in normalized:
         path_content = inventory
@@ -578,17 +585,38 @@ def inv_inspect_items(flags):
                 path_content = inventory[session["session"]]
         else: 
             path_content = inventory
-    try:
+
+    # Print Items
+    if session["session"] != "":
+        if "main" not in normalized:
+            Wprint(f"Items for {session["session"]}/{session["sub_session"]}/{session["sub_sub_session"]}:")
+        else:
+            Wprint("Items for main path:")
+    else:
+        Wprint("Items for main path:")
+
+    Wprint("")
+    
+    if isinstance(path_content, dict):
         for i in path_content:
-            Wprint(f"{i}")
-            for o in path_content[i]:
-                Wprint(f"> {o}")
-                for p in path_content[i][o]:
-                    Wprint(f">> {p}")
-                    for a in path_content[i][o][p]:
-                        Wprint(f">>> {a}")
-    except Exception:
-        ...
+            Wprint(f"{i}:")
+            if isinstance(path_content[i], dict):
+                for i1 in path_content[i]:
+                    Wprint(f"  {i1}:")
+                    if isinstance(path_content[i][i1], dict):
+                        for i2 in path_content[i][i1]:
+                            Wprint(f"    {i2}:")
+                            for i3 in path_content[i][i1][i2]:
+                                Wprint(f"      > {i3}")
+                    elif isinstance(path_content[i][i1], list):
+                        for i2 in path_content[i][i1]:
+                            Wprint(f"    > {i2}")
+            elif isinstance(path_content[i], list):
+                for i in path_content[i]:
+                    Wprint(f"  > {i}")
+    elif isinstance(path_content, list):
+        for i in path_content:
+            Wprint(f"> {i}")
 
 # net Commands:
 def net_pg_uop(flags):
