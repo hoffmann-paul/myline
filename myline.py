@@ -557,6 +557,32 @@ def inv_nav_get(flags):
     else:
         Rprint("You are in the main path")
 
+def inv_inspect_items(flags):
+    normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
+    if "main" in normalized:
+        path_content = inventory
+    else:
+        if session["session"] != "":
+            if session["sub_session"] != "":
+                if session["sub_sub_session"] != "":
+                    path_content = inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]]
+                else:
+                    path_content = inventory[session["session"]][session["sub_session"]]
+            else:
+                path_content = inventory[session["session"]]
+        else: 
+            path_content = inventory
+    try:
+        for i in path_content:
+            Wprint(f"{i}")
+            for o in path_content[i]:
+                Wprint(f"> {o}")
+                for p in path_content[i][o]:
+                    Wprint(f">> {p}")
+                    for a in path_content[i][o][p]:
+                        Wprint(f">>> {a}")
+    except Exception:
+        ...
 
 # net Commands:
 def net_pg_uop(flags):
@@ -824,6 +850,9 @@ commands = {
             "to": inv_nav_to,
             "main": inv_nav_main,
             "GET": inv_nav_get
+        },
+        "inspect": {
+            "items": inv_inspect_items
         }
     },
     "net": {
