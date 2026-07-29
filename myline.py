@@ -541,6 +541,44 @@ def myline_check_changes(flags):
     else:
         Gprint("No Unsaved Changes")
 
+
+def _exit_and_close_terminal(code=0):
+    """End MyLine and best-effort close the host console window (#32).
+
+    Windows: taskkill the parent console when launched in its own window.
+    macOS: Cmd+W on Terminal/iTerm only when TERM_PROGRAM matches.
+    Linux / IDEs: SystemExit only (do not kill parent shell/IDE).
+    """
+    import os
+    import subprocess
+    import time
+
+    try:
+        if os.name == "nt":
+            subprocess.Popen(
+                ["taskkill", "/F", "/PID", str(os.getppid()), "/T"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            time.sleep(0.05)
+        elif sys.platform == "darwin" and sys.stdin.isatty():
+            if os.environ.get("TERM_PROGRAM") in {"Apple_Terminal", "iTerm.app"}:
+                subprocess.Popen(
+                    [
+                        "osascript",
+                        "-e",
+                        'tell application "System Events" to keystroke "w" using command down',
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                time.sleep(0.05)
+    except Exception:
+        pass
+    raise SystemExit(code)
+
+
 def kill(flags):
     force = bool(flags) and flags[0] == "f"
     if not force:
@@ -557,10 +595,10 @@ def kill(flags):
         else:
             Gprint("No Unsaved Changes")
             RRprint("Kill MyLine...")
-            sys.exit()
+            _exit_and_close_terminal()
     else:
         RRprint("Killing MyLine...")
-        sys.exit()
+        _exit_and_close_terminal()
 
 def data_write_post(flags):
     data_write_t(flags)
@@ -649,6 +687,20 @@ def myline_restore_changes(flags):
 
 
 # fast Commands:
+def kill(flags):
+    if flags[0] != "f":
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+        if saved_data != data:
+            Rprint("Unsaved Changes between data and data.json")
+            Rprint("Killing process is canceled...")
+        else:
+            Gprint("No Unsaved Changes")
+            RRprint("Kill MyLine...")
+            _exit_and_close_terminal()
+    elif flags[0] == "f":
+        RRprint("Killing MyLine...")
+        _exit_and_close_terminal() 
 
 def repeat_last_cmd(flags):
     if history != []:
