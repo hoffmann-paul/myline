@@ -557,6 +557,12 @@ def inv_nav_get(flags):
     else:
         Rprint("You are in the main path")
 
+def inv_write_new(flags):
+    ...
+
+def inv_write_del(flags):
+    ...
+
 def inv_inspect_items(flags):
     normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
     if "main" in normalized:
@@ -850,6 +856,10 @@ commands = {
             "to": inv_nav_to,
             "main": inv_nav_main,
             "GET": inv_nav_get
+        },
+        "WRITE": {
+            "new": inv_write_new,
+            "del": inv_write_del
         },
         "inspect": {
             "items": inv_inspect_items
