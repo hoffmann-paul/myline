@@ -17,16 +17,22 @@ DEFAULT_CMDDATA_JSON = 'storage/cmddata.json'
 DEFAULT_COMPANY_IDS_JSON = 'storage/company_ids.json'
 DEFAULT_CMDHISTORY_JSON = 'storage/cmdhistory.json'
 DEFAULT_DATA_TEMP_JSON = 'storage/data_temp.json'
+DEFAULT_INVENTORY_TABLE_JSON = 'storage/inventory/table.json'
+DEFAULT_INVENTORY_SESSION_JSON = 'storage/inventory/session.json'
 
 # --- System Variables ---
 version = "v1.0.0"
 data = []
 history = []
+inventory = {}
+session = {}
 loaded_cmddata_json = False
 loaded_cmdhistory_json = False
 loaded_company_ids_json = False
 loaded_data_temp_json = False
 loaded_data_json = False
+loaded_inventory_table_json = False
+loaded_inventory_sessioin_json = False
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -59,6 +65,18 @@ parser.add_argument(
     default=DEFAULT_DATA_TEMP_JSON,
     help="Path to the data_temp.json auto-save file (defaults to '%(default)s')",
 )
+parser.add_argument(
+    "--inventory-table-file",
+    dest="inventory_table_file",
+    default=DEFAULT_INVENTORY_TABLE_JSON,
+    help="Path to the table.json file (defaults to '%(default)s')",
+)
+parser.add_argument(
+    "--inventory-session-file",
+    dest="inventory_session_file",
+    default=DEFAULT_INVENTORY_SESSION_JSON,
+    help="Path to the session.json file (defaults to '%(default)s')",
+)
 args = parser.parse_args()
 
 file_data_json = args.data_file
@@ -66,6 +84,8 @@ file_cmddata_json = args.cmddata_file
 file_company_ids_json = args.company_ids_file
 file_cmdhistory_json = args.cmdhistory_file
 file_data_temp_json = args.data_temp_file
+file_inventory_table_json = args.inventory_table_file
+file_inventory_session_json = args.inventory_session_file
 
 def _prefix():
     now = datetime.datetime.now()
@@ -150,6 +170,20 @@ try:
 except Exception:
     failload = True
     temp_data = 0
+
+try:
+    with open(file_inventory_table_json, 'r') as file:
+        inventory = json.load(file)
+        loaded_inventory_table_json = True
+except Exception:
+    failload = True
+
+try:
+    with open(file_inventory_session_json, 'r') as file:
+        session = json.load(file)
+        loaded_inventory_sessioin_json = True
+except Exception:
+    failload = True
 
 def check_temp_saves():
     if temp_data != 0:
@@ -484,6 +518,164 @@ def data_card_delete(flags):
     Rprint(f"Popped Data Record at index {flags[0]}")
 
 
+# inv Commands:
+def inv_nav_to(flags):
+    try:
+        if session["session"] == "":
+            inventory[flags[0]]
+            session["session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {flags[0]}")
+
+        elif session["sub_session"] == "":
+            inventory[session["session"]][flags[0]]
+            session["sub_session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {session["session"]}/{flags[0]}")
+
+        elif session["sub_sub_session"] == "":
+            inventory[session["session"]][session["sub_session"]][flags[0]]
+            session["sub_sub_session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {session["session"]}/{session["sub_session"]}/{flags[0]}")
+
+        else:
+            Rprint("You already navigated to a path, Use \"inv nav main\" to get to top level")
+
+    except KeyError:
+        Rprint("This path doesn't exists")
+
+def inv_nav_main(flags):
+    global session
+    session = { "session": "", "sub_session": "", "sub_sub_session": "" }
+    send_json(file_inventory_session_json, session)
+    Gprint("Navigated to top Path")
+
+def inv_nav_get(flags):
+    if session["session"] != "":
+        Wprint(f"Current Path is: {session["session"]}/{session["sub_session"]}/{session["sub_sub_session"]}")
+    else:
+        Rprint("You are in the main path")
+
+def inv_find_loc(flags):
+    normalized = [str(f).lower() for f in flags[1:] if f is not None and str(f) != ""]
+    content_to_search = None
+
+    # Get all Content that needs to be searched
+
+    if "path" not in normalized:
+        content_to_search = inventory
+    else:
+        if session["session"] != "":
+            if session["sub_session"] != "":
+                if session["sub_sub_session"] != "":
+                    content_to_search = inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]]
+                else:
+                    content_to_search = inventory[session["session"]][session["sub_session"]]
+            else:
+                content_to_search = inventory[session["session"]]
+        else: 
+            content_to_search = inventory
+
+    # The actual Search
+    cts = content_to_search # This is just a shortening for easier developing
+    item = flags[0]
+    Wprint("")
+
+    if isinstance(cts, dict):
+        for i in cts:
+            Wprint(f"{i}:")
+            if isinstance(cts[i], dict):
+                for i1 in cts[i]:
+                    Wprint(f"  {i1}:")
+                    if isinstance(cts[i][i1], dict):
+                        for i2 in cts[i][i1]:
+                            Wprint(f"    {i2}:")
+                            for i3 in cts[i][i1][i2]:
+                                if item.lower() in i3.lower():
+                                    Gprint(f">>>>>>> {i3}")
+                                else:
+                                    Wprint(f"      > {i3}")
+                    elif isinstance(cts[i][i1], list):
+                        for i2 in cts[i][i1]:
+                            if item.lower() in i2.lower():
+                                Gprint(f">>>>> {i2}")
+                            else:
+                                Wprint(f"    > {i2}")
+            elif isinstance(cts[i], list):
+                for i in cts[i]:
+                    if item.lower() in i.lower():
+                        Gprint(f">>> {i}")
+                    else:
+                        Wprint(f"  > {i}")
+    elif isinstance(cts, list):
+        for i in cts:
+            if item.lower() in i.lower():
+                Gprint(f"> {i}")
+            else:
+                Wprint(f"> {i}")
+
+def inv_write_new(flags):
+    if session["sub_sub_session"] != "":
+        global inventory
+        inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]].append(flags[0])
+        send_json(file_inventory_table_json, inventory)
+
+    else:
+        Rprint("You have to Navigate to a full Path to create a new item")
+
+def inv_write_del(flags):
+    ... # Add Logic for this Command
+
+def inv_inspect_items(flags):
+    global inventory
+    normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
+    if "main" in normalized:
+        path_content = inventory
+    else:
+        if session["session"] != "":
+            if session["sub_session"] != "":
+                if session["sub_sub_session"] != "":
+                    path_content = inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]]
+                else:
+                    path_content = inventory[session["session"]][session["sub_session"]]
+            else:
+                path_content = inventory[session["session"]]
+        else: 
+            path_content = inventory
+
+    # Print Items
+    if session["session"] != "":
+        if "main" not in normalized:
+            Wprint(f"Items for {session["session"]}/{session["sub_session"]}/{session["sub_sub_session"]}:")
+        else:
+            Wprint("Items for main path:")
+    else:
+        Wprint("Items for main path:")
+
+    Wprint("")
+    
+    if isinstance(path_content, dict):
+        for i in path_content:
+            Wprint(f"{i}:")
+            if isinstance(path_content[i], dict):
+                for i1 in path_content[i]:
+                    Wprint(f"  {i1}:")
+                    if isinstance(path_content[i][i1], dict):
+                        for i2 in path_content[i][i1]:
+                            Wprint(f"    {i2}:")
+                            for i3 in path_content[i][i1][i2]:
+                                Wprint(f"      > {i3}")
+                    elif isinstance(path_content[i][i1], list):
+                        for i2 in path_content[i][i1]:
+                            Wprint(f"    > {i2}")
+            elif isinstance(path_content[i], list):
+                for i in path_content[i]:
+                    Wprint(f"  > {i}")
+    elif isinstance(path_content, list):
+        for i in path_content:
+            Wprint(f"> {i}")
+
 # net Commands:
 def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
@@ -649,6 +841,8 @@ def myline_help_paths(flags):
     Wprint(f"company_ids file: {file_company_ids_json}")
     Wprint(f"cmdhistory file: {file_cmdhistory_json}")
     Wprint(f"data_temp file: {file_data_temp_json}")
+    Wprint(f"inventory table file: {file_inventory_table_json}")
+    Wprint(f"inventory session file: {file_inventory_session_json}")
 
 def myline_check_files(flags):
     files = {
@@ -657,6 +851,8 @@ def myline_check_files(flags):
         "company_ids.json": loaded_company_ids_json,
         "data_temp.json": loaded_data_temp_json,
         "data.json": loaded_data_json,
+        "inventory/table.json": loaded_inventory_table_json,
+        "inventory/session.json": loaded_inventory_sessioin_json
     }
     for file_name in files:
         if files[file_name]:
@@ -739,6 +935,23 @@ commands = {
         "inspect": {
             "struc": data_inspect_struc,
             "count": data_inspect_count
+        }
+    },
+    "inv": {
+        "nav": {
+            "to": inv_nav_to,
+            "main": inv_nav_main,
+            "GET": inv_nav_get
+        },
+        "find": {
+            "loc": inv_find_loc
+        },
+        "WRITE": {
+            "new": inv_write_new,
+            "del": inv_write_del
+        },
+        "inspect": {
+            "items": inv_inspect_items
         }
     },
     "net": {
