@@ -2,6 +2,10 @@
 MyLine is my own command-line tool.
 
 ## Get started
+
+Windows users: see **[WINDOWS_TESTING.md](WINDOWS_TESTING.md)** for a short smoke checklist (#76).
+Contributors: **[TESTING.md](TESTING.md)** — how to test and report bugs (#43).
+
 1. Download all files from github.com/hoffmann-paul/myline
 2. Install everything in the requirements.txt
 3. Run MyLine: `python myline.py`
@@ -34,6 +38,13 @@ For a list of all commands, type: `myline help c`
 | `data card delete` | `index` |  | Deletes a Data Record permanently |
 | `data inspect struc` |  |  | Shows a list of all Parameters |
 | `data inspect count` |  |  | Counts all Data Records |
+| `inv nav to` | `path` |  | Navigate to a new Path in the inventory hirachy |
+| `inv nav main` |  |  | Navigate to the top Level of the inventory hirachy |
+| `inv nav GET` |  |  | Shows the current path in the inventory |
+| `inv find loc` | `item` | `path` | Search for an `item` in the main Inventory and prints out the Location, by adding `path` the programm only searches in the current navigated path |
+| `inv WRITE add` | `item` |  | Adds a new Item in the current path |
+| `inv WRITE del` | `item` |  | Deletes a item in the current path |
+| `inv inspect items` |  | `main` | Lists all items in the current path, if you add `main` it list every item |
 | `net pg uop` | `url` `port` |  | Tries to connect to a `url` on a specific `port` |
 | `ble HEAD devs` |  | `raw` `loop` | Scans BLE Signals and shows a list of Name; Local-Name; rssi; tx_power; MAC-Address; by adding `raw` it also shows devices where name == None, by adding `loop` it rescans every Second |
 | `myline help c` |  |  | Shows a list of all Commands |

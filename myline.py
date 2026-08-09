@@ -33,16 +33,22 @@ DEFAULT_CMDDATA_JSON = 'storage/cmddata.json'
 DEFAULT_COMPANY_IDS_JSON = 'storage/company_ids.json'
 DEFAULT_CMDHISTORY_JSON = 'storage/cmdhistory.json'
 DEFAULT_DATA_TEMP_JSON = 'storage/data_temp.json'
+DEFAULT_INVENTORY_TABLE_JSON = 'storage/inventory/table.json'
+DEFAULT_INVENTORY_SESSION_JSON = 'storage/inventory/session.json'
 
 # --- System Variables ---
 version = "v1.0.0"
 data = []
 history = []
+inventory = {}
+session = {}
 loaded_cmddata_json = False
 loaded_cmdhistory_json = False
 loaded_company_ids_json = False
 loaded_data_temp_json = False
 loaded_data_json = False
+loaded_inventory_table_json = False
+loaded_inventory_sessioin_json = False
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -81,6 +87,18 @@ parser.add_argument(
     default=DEFAULT_DATA_TEMP_JSON,
     help="Path to the data_temp.json auto-save file (defaults to '%(default)s')",
 )
+parser.add_argument(
+    "--inventory-table-file",
+    dest="inventory_table_file",
+    default=DEFAULT_INVENTORY_TABLE_JSON,
+    help="Path to the table.json file (defaults to '%(default)s')",
+)
+parser.add_argument(
+    "--inventory-session-file",
+    dest="inventory_session_file",
+    default=DEFAULT_INVENTORY_SESSION_JSON,
+    help="Path to the session.json file (defaults to '%(default)s')",
+)
 args = parser.parse_args()
 
 file_data_json = args.data_file
@@ -88,6 +106,8 @@ file_cmddata_json = args.cmddata_file
 file_company_ids_json = args.company_ids_file
 file_cmdhistory_json = args.cmdhistory_file
 file_data_temp_json = args.data_temp_file
+file_inventory_table_json = args.inventory_table_file
+file_inventory_session_json = args.inventory_session_file
 
 def _prefix():
     now = datetime.datetime.now()
@@ -96,6 +116,9 @@ def _prefix():
 
 def Gprint(string):
     print(f"\033[32m{_prefix()} {string}\033[0m")
+
+def rGprint(string):
+    print(f"\033[32m{string}\033[0m")
  
 def GGprint(string):
     print(f"\033[0;42m{_prefix()} {string}\033[0m")
@@ -120,6 +143,9 @@ def BBprint(string):
 
 def Wprint(string):
     print(f"\033[0m{_prefix()} {string}\033[0m")
+
+def rWprint(string):
+    print(f"\033[0m{string}\033[0m")
  
 def WWprint(string):
     print(f"\033[0;47;30m{_prefix()} {string}\033[0m")
@@ -173,6 +199,20 @@ except Exception:
     failload = True
     temp_data = 0
 
+try:
+    with open(file_inventory_table_json, 'r') as file:
+        inventory = json.load(file)
+        loaded_inventory_table_json = True
+except Exception:
+    failload = True
+
+try:
+    with open(file_inventory_session_json, 'r') as file:
+        session = json.load(file)
+        loaded_inventory_sessioin_json = True
+except Exception:
+    failload = True
+
 def check_temp_saves():
     if temp_data != 0:
         if temp_data == []:
@@ -191,10 +231,11 @@ else:
     Yprint("Type \"myline check files\" for detailed informations")
 Wprint("")
 Wprint("Checking for restorable Changes...")
-if check_temp_saves():
+_has_restorable = check_temp_saves()
+if _has_restorable:
     Yprint("Found restorable Changes")
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
-elif not check_temp_saves():
+else:
     Gprint("No restorable Changes Found")
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
@@ -295,13 +336,67 @@ def auto_save():
     if send_json(file_data_temp_json, data) == False:
         Rprint("Failed Auto-Save")
 
-def myline_restore_changes(flags):
-    Yprint("Restoring last Session")
+def add_cmd_to_history(cmd):
+    history.append(cmd)
+    
+    if send_json(file_cmdhistory_json, history) == False:
+        Rprint(f"Can't add {cmd} to cmdhistory.json")
+    
+
+# data Commands:
+def is_filled_value(value):
+    """Return whether a field contains an explicit, non-empty value."""
+    if isinstance(value, bool):
+        return True
+
+    return value not in ("", 0, {}, [])
+
+
+def _coerce_write_value(value):
+    """Convert a CLI write value from string to a JSON-friendly native type.
+
+    Command flags always arrive as strings. Without coercion, ``data WRITE t``
+    stores numbers as strings and breaks numeric comparisons against values
+    loaded from JSON (issue #44).
+
+    Rules (issue #84):
+      * Matching wrapping quotes force a **literal string** — so phone
+        numbers, the text true, IDs with leading zeros, etc. can be stored
+        exactly (use double or single quotes around the value).
+      * Bare true / false / null / none still become bool/None.
+      * Digit strings with a **leading zero** (length > 1) stay strings so
+        values like 0491701234567 are not silently turned into ints.
+      * Other numeric literals still coerce to int / float.
+    """
+    if not isinstance(value, str):
+        return value
+    s = value.strip()
+    # Explicit string escape: "0491..." or 'true' keeps the inner text.
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+        return s[1:-1]
+    lowered = s.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if lowered in ("null", "none"):
+        return None
     try:
-        global data
-        data = temp_data
-    except Exception as e:
-        Yprint(f"Can't Restore Changes: {e}")
+        if s.startswith(("+", "-")):
+            body = s[1:]
+        else:
+            body = s
+        if body.isdigit():
+            # Leading zeros → keep as string (phone numbers, zero-padded IDs).
+            # Plain "0" / "42" / "-7" still become int for issue #44.
+            if len(body) > 1 and body.startswith("0"):
+                return s
+            return int(s)
+        return float(s)
+    except ValueError:
+        return value
+
+
 
 def data_get_i(flags):
     parameter = flags[0]
@@ -318,13 +413,43 @@ def data_get_i(flags):
     except KeyError:
         Rprint("There is no parameter called >>" + parameter + "<<")
 
-def is_filled_value(value):
-    """Return whether a field contains an explicit, non-empty value."""
-    if isinstance(value, bool):
-        return True
-
-    return value not in ("", 0, {}, [])
-
+def data_get_im(flags):
+    try:
+        amount = int(flags[0]) -1
+    except Exception:
+        RRprint("Index Amount must me an Integer")
+        return
+    index_list = []
+    parameter = input("parameter >>> ")
+    value = input("value >>> ")
+    found = False
+    try:
+        for i in data:
+            field_value = i.get(parameter, "")
+            if isinstance(field_value, str) and value.lower() in field_value.lower():
+                found = True
+                Gprint(str(data.index(i)) + " is working for all conditions")
+                index_list.append(str(data.index(i)))
+        if not found:
+            Rprint("nothing works for all conditions")
+    except KeyError:
+        Rprint("There is no parameter called >>" + parameter + "<<")
+    for a in range(amount):
+            parameter = input("parameter >>> ")
+            value = input("value >>> ")
+            found = False
+            try:
+                for i in data:
+                    field_value = i.get(parameter, "")
+                    if isinstance(field_value, str) and value.lower() in field_value.lower() and data.index(i) in index_list:
+                        found = True
+                        Gprint(str(data.index(i)) + " is working for all conditions")
+                        index_list.append(str(data.index(i)))
+                if not found:
+                    Rprint("nothing works for all conditions")
+                    break
+            except KeyError:
+                Rprint("There is no parameter called >>" + parameter + "<<")
 
 def data_head_f(flags):
     index = flags[0]
@@ -385,35 +510,6 @@ def data_post_a(flags):
     if send_json(file_data_temp_json, []) == False:
         Rprint("Failed clearing Auto-Save Cache.")
 
-def _coerce_write_value(value):
-    """Convert a CLI write value from string to a JSON-friendly native type.
-
-    Command flags always arrive as strings. Without coercion, ``data WRITE t``
-    stores numbers as strings and breaks numeric comparisons against values
-    loaded from JSON (issue #44).
-    """
-    if not isinstance(value, str):
-        return value
-    lowered = value.strip().lower()
-    if lowered == "true":
-        return True
-    if lowered == "false":
-        return False
-    if lowered in ("null", "none"):
-        return None
-    # Integers first so "42" stays int; floats for values with a decimal point.
-    try:
-        if value.strip().startswith(("+", "-")):
-            body = value.strip()[1:]
-        else:
-            body = value.strip()
-        if body.isdigit():
-            return int(value.strip())
-        return float(value.strip())
-    except ValueError:
-        return value
-
-
 def data_write_t(flags):
     index = int(flags[0])
     parameter = flags[1]
@@ -421,6 +517,10 @@ def data_write_t(flags):
     data[index][parameter] = value
     auto_save()
     
+def data_write_post(flags):
+    data_write_t(flags)
+    data_post_a(flags)
+
 def data_inspect_struc(flags):
     for i in data[0]:
         Wprint(i)
@@ -428,9 +528,188 @@ def data_inspect_struc(flags):
 def data_inspect_count(flags):
     Wprint(f"Counted {len(data)} Objects in data")
 
+def data_card_new(flags):
+    index = len(data)
+    Wprint(f"Index for new Data Record: {index}")
+    new_card = {}
+    for p in data[0]:
+        now = datetime.datetime.now()
+        print(f"\033[34m@MyLine {version} [{now.strftime('%H:%M:%S')}] {p} >>> ", end="")
+        value = input()
+        entry = {p: value}
+        new_card.update(entry)
+    data.append(new_card)
+    Gprint(f"Created New Data Record at index {index}")
+
+def data_card_delete(flags):
+    data.pop(int(flags[0]))
+    Rprint(f"Popped Data Record at index {flags[0]}")
+
+
+# inv Commands:
+def inv_nav_to(flags):
+    try:
+        if session["session"] == "":
+            inventory[flags[0]]
+            session["session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {flags[0]}")
+
+        elif session["sub_session"] == "":
+            inventory[session["session"]][flags[0]]
+            session["sub_session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {session["session"]}/{flags[0]}")
+
+        elif session["sub_sub_session"] == "":
+            inventory[session["session"]][session["sub_session"]][flags[0]]
+            session["sub_sub_session"] = flags[0]
+            send_json(file_inventory_session_json, session)
+            Gprint(f"You Navigated to {session["session"]}/{session["sub_session"]}/{flags[0]}")
+
+        else:
+            Rprint("You already navigated to a path, Use \"inv nav main\" to get to top level")
+
+    except KeyError:
+        Rprint("This path doesn't exists")
+
+def inv_nav_main(flags):
+    global session
+    session = { "session": "", "sub_session": "", "sub_sub_session": "" }
+    send_json(file_inventory_session_json, session)
+    Gprint("Navigated to top Path")
+
+def inv_nav_get(flags):
+    if session["session"] != "":
+        Wprint(f"Current Path is: {session["session"]}/{session["sub_session"]}/{session["sub_sub_session"]}")
+    else:
+        Rprint("You are in the main path")
+
+def inv_find_loc(flags):
+    normalized = [str(f).lower() for f in flags[1:] if f is not None and str(f) != ""]
+    content_to_search = None
+
+    # Get all Content that needs to be searched
+
+    if "path" not in normalized:
+        content_to_search = inventory
+    else:
+        if session["session"] != "":
+            if session["sub_session"] != "":
+                if session["sub_sub_session"] != "":
+                    content_to_search = inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]]
+                else:
+                    content_to_search = inventory[session["session"]][session["sub_session"]]
+            else:
+                content_to_search = inventory[session["session"]]
+        else: 
+            content_to_search = inventory
+
+    # The actual Search
+    cts = content_to_search # This is just a shortening for easier developing
+    item = flags[0]
+    Wprint("")
+
+    if isinstance(cts, dict):
+        for i in cts:
+            rWprint(f"{i}:")
+            if isinstance(cts[i], dict):
+                for i1 in cts[i]:
+                    rWprint(f"  {i1}:")
+                    if isinstance(cts[i][i1], dict):
+                        for i2 in cts[i][i1]:
+                            rWprint(f"    {i2}:")
+                            for i3 in cts[i][i1][i2]:
+                                if item.lower() in i3.lower():
+                                    rGprint(f">>>>>>> {i3}")
+                                else:
+                                    rWprint(f"      > {i3}")
+                    elif isinstance(cts[i][i1], list):
+                        for i2 in cts[i][i1]:
+                            if item.lower() in i2.lower():
+                                rGprint(f">>>>> {i2}")
+                            else:
+                                rWprint(f"    > {i2}")
+            elif isinstance(cts[i], list):
+                for i in cts[i]:
+                    if item.lower() in i.lower():
+                        rGprint(f">>> {i}")
+                    else:
+                        rWprint(f"  > {i}")
+    elif isinstance(cts, list):
+        for i in cts:
+            if item.lower() in i.lower():
+                rGprint(f"> {i}")
+            else:
+                rWprint(f"> {i}")
+
+def inv_write_new(flags):
+    if session["sub_sub_session"] != "":
+        global inventory
+        inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]].append(flags[0])
+        send_json(file_inventory_table_json, inventory)
+
+    else:
+        Rprint("You have to Navigate to a full Path to create a new item")
+
+def inv_write_del(flags):
+    ... # Add Logic for this Command
+
+def inv_inspect_items(flags):
+    global inventory
+    normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
+    if "main" in normalized:
+        path_content = inventory
+    else:
+        if session["session"] != "":
+            if session["sub_session"] != "":
+                if session["sub_sub_session"] != "":
+                    path_content = inventory[session["session"]][session["sub_session"]][session["sub_sub_session"]]
+                else:
+                    path_content = inventory[session["session"]][session["sub_session"]]
+            else:
+                path_content = inventory[session["session"]]
+        else: 
+            path_content = inventory
+
+    # Print Items
+    if session["session"] != "":
+        if "main" not in normalized:
+            Wprint(f"Items for {session["session"]}/{session["sub_session"]}/{session["sub_sub_session"]}:")
+        else:
+            Wprint("Items for main path:")
+    else:
+        Wprint("Items for main path:")
+
+    Wprint("")
+    
+    if isinstance(path_content, dict):
+        for i in path_content:
+            Wprint(f"{i}:")
+            if isinstance(path_content[i], dict):
+                for i1 in path_content[i]:
+                    Wprint(f"  {i1}:")
+                    if isinstance(path_content[i][i1], dict):
+                        for i2 in path_content[i][i1]:
+                            Wprint(f"    {i2}:")
+                            for i3 in path_content[i][i1][i2]:
+                                Wprint(f"      > {i3}")
+                    elif isinstance(path_content[i][i1], list):
+                        for i2 in path_content[i][i1]:
+                            Wprint(f"    > {i2}")
+            elif isinstance(path_content[i], list):
+                for i in path_content[i]:
+                    Wprint(f"  > {i}")
+    elif isinstance(path_content, list):
+        for i in path_content:
+            Wprint(f"> {i}")
+
+# net Commands:
 def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
 
+
+# ble Commands:
 def ble_head_devs(flags):
     # Accept "raw" / "loop" in either flag position (issue #50).
     normalized = [str(f).lower() for f in flags if f is not None and str(f) != ""]
@@ -447,6 +726,8 @@ def ble_head_devs(flags):
     else:
         asyncio.run(scan(5.0, show_none))
 
+
+# myline Commands:
 def myline_help_c(flags):
     YYprint("For explanations visit the GitHub page:")
     YYprint("github.com/hoffmann-paul/myline/blob/main/README.md")
@@ -469,38 +750,80 @@ def myline_help_info(flags):
     Wprint("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.")
 
 def myline_check_changes(flags):
-    with open(file_data_json, 'r') as file:
-        saved_data = json.load(file)
+    try:
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+    except Exception:
+        Rprint(f"Can't read {file_data_json} to check for unsaved changes")
+        return
     if saved_data != data:
         Rprint("Unsaved Changes between data and data.json")
     else:
         Gprint("No Unsaved Changes")
 
+
+def _exit_and_close_terminal(code=0):
+    """End MyLine and best-effort close the host console window (#32).
+
+    Windows: taskkill the parent console when launched in its own window.
+    macOS: Cmd+W on Terminal/iTerm only when TERM_PROGRAM matches.
+    Linux / IDEs: SystemExit only (do not kill parent shell/IDE).
+    """
+    import os
+    import subprocess
+    import time
+
+    try:
+        if os.name == "nt":
+            subprocess.Popen(
+                ["taskkill", "/F", "/PID", str(os.getppid()), "/T"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            time.sleep(0.05)
+        elif sys.platform == "darwin" and sys.stdin.isatty():
+            if os.environ.get("TERM_PROGRAM") in {"Apple_Terminal", "iTerm.app"}:
+                subprocess.Popen(
+                    [
+                        "osascript",
+                        "-e",
+                        'tell application "System Events" to keystroke "w" using command down',
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                time.sleep(0.05)
+    except Exception:
+        pass
+    raise SystemExit(code)
+
+
 def kill(flags):
-    if flags[0] != "f":
-        with open(file_data_json, 'r') as file:
-            saved_data = json.load(file)
+    force = bool(flags) and flags[0] == "f"
+    if not force:
+        try:
+            with open(file_data_json, 'r') as file:
+                saved_data = json.load(file)
+        except Exception:
+            Rprint(f"Can't read {file_data_json} to check for unsaved changes")
+            Rprint("Killing process is canceled... (use kill f to force)")
+            return
         if saved_data != data:
             Rprint("Unsaved Changes between data and data.json")
             Rprint("Killing process is canceled...")
         else:
             Gprint("No Unsaved Changes")
             RRprint("Kill MyLine...")
-            sys.exit()
-    elif flags[0] == "f":
+            _exit_and_close_terminal()
+    else:
         RRprint("Killing MyLine...")
-        sys.exit() 
+        _exit_and_close_terminal()
 
 def data_write_post(flags):
     data_write_t(flags)
     data_post_a(flags)
 
-def add_cmd_to_history(cmd):
-    history.append(cmd)
-    
-    if send_json(file_cmdhistory_json, history) == False:
-        Rprint(f"Can't add {cmd} to cmdhistory.json")
-    
 def myline_history_get(flags):
     if history != []:
         for i in history:
@@ -520,6 +843,10 @@ def myline_history_clear(flags):
         RRprint("Can't Clear History")
 
 def data_card_new(flags):
+    if not data:
+        Rprint("No existing data records — cannot infer fields for a new card")
+        Rprint("Add at least one record structure first, or restore from a save")
+        return
     index = len(data)
     Wprint(f"Index for new Data Record: {index}")
     new_card = {}
@@ -542,14 +869,18 @@ def myline_help_paths(flags):
     Wprint(f"company_ids file: {file_company_ids_json}")
     Wprint(f"cmdhistory file: {file_cmdhistory_json}")
     Wprint(f"data_temp file: {file_data_temp_json}")
+    Wprint(f"inventory table file: {file_inventory_table_json}")
+    Wprint(f"inventory session file: {file_inventory_session_json}")
 
 def myline_check_files(flags):
     files = {
         "cmddata.json": loaded_cmddata_json,
         "cmdhistory.json": loaded_cmdhistory_json,
         "company_ids.json": loaded_company_ids_json,
-        "data_temp.json": loaded_data_json,
-        "data.json": loaded_data_json
+        "data_temp.json": loaded_data_temp_json,
+        "data.json": loaded_data_json,
+        "inventory/table.json": loaded_inventory_table_json,
+        "inventory/session.json": loaded_inventory_sessioin_json
     }
     for file_name in files:
         if files[file_name]:
@@ -557,62 +888,62 @@ def myline_check_files(flags):
         else:
             RRprint(f"An error occurred while trying to read {file_name}")
         
+def myline_restore_changes(flags):
+    """Restore auto-saved session data from data_temp.json.
+
+    Refuses to run when temp_data is missing (0) or not a list — otherwise
+    ``data = 0`` would brick every subsequent data command (issue #83).
+    """
+    Yprint("Restoring last Session")
+    global data, temp_data
+    if temp_data == 0 or not isinstance(temp_data, list):
+        Rprint(
+            f"Nothing to restore — {file_data_temp_json} is missing, "
+            "unreadable, or empty."
+        )
+        Rprint("Make a change first so auto-save can write data_temp.json.")
+        return
+    if temp_data == []:
+        Yprint("data_temp.json is empty — nothing to restore.")
+        return
+    data = list(temp_data)  # shallow copy of the list of records
+    Gprint(f"Restored {len(data)} record(s) from last session.")
+
+
+# fast Commands:
+def kill(flags):
+    if flags[0] != "f":
+        with open(file_data_json, 'r') as file:
+            saved_data = json.load(file)
+        if saved_data != data:
+            Rprint("Unsaved Changes between data and data.json")
+            Rprint("Killing process is canceled...")
+        else:
+            Gprint("No Unsaved Changes")
+            RRprint("Kill MyLine...")
+            _exit_and_close_terminal()
+    elif flags[0] == "f":
+        RRprint("Killing MyLine...")
+        _exit_and_close_terminal() 
+
 def repeat_last_cmd(flags):
     if history != []:
         cmd = history[-1]
         if cmd.endswith("::valid"):
             cmd = cmd.replace(" ::valid", "")
             try:
-                func = globals()[cmd]
+                func = globals()[cmd.lower()]
                 func(flags)
             except Exception:
                 Rprint("You can't repeat this command")
     else:
         Rprint("No command history found")
 
-def data_get_im(flags):
-    try:
-        amount = int(flags[0]) -1
-    except Exception:
-        RRprint("Index Amount must me an Integer")
-        return
-    index_list = []
-    parameter = input("parameter >>> ")
-    value = input("value >>> ")
-    found = False
-    try:
-        for i in data:
-            field_value = i.get(parameter, "")
-            if isinstance(field_value, str) and value.lower() in field_value.lower():
-                found = True
-                Gprint(str(data.index(i)) + " is working for all conditions")
-                index_list.append(str(data.index(i)))
-        if not found:
-            Rprint("nothing works for all conditions")
-    except KeyError:
-        Rprint("There is no parameter called >>" + parameter + "<<")
-    for a in range(amount):
-            parameter = input("parameter >>> ")
-            value = input("value >>> ")
-            found = False
-            try:
-                for i in data:
-                    field_value = i.get(parameter, "")
-                    if isinstance(field_value, str) and value.lower() in field_value.lower():
-                        found = True
-                        Gprint(str(data.index(i)) + " is working for all conditions")
-                        index_list.append(str(data.index(i)))
-                if not found:
-                    Rprint("nothing works for all conditions")
-                    break
-            except KeyError:
-                Rprint("There is no parameter called >>" + parameter + "<<")
-
 commands = {
     "data": {
         "GET": {
             "i": data_get_i,
-            "iM": data_get_im
+            "im": data_get_im
         },
         "HEAD": {
             "raw": data_head_raw,
@@ -632,6 +963,23 @@ commands = {
         "inspect": {
             "struc": data_inspect_struc,
             "count": data_inspect_count
+        }
+    },
+    "inv": {
+        "nav": {
+            "to": inv_nav_to,
+            "main": inv_nav_main,
+            "GET": inv_nav_get
+        },
+        "find": {
+            "loc": inv_find_loc
+        },
+        "WRITE": {
+            "new": inv_write_new,
+            "del": inv_write_del
+        },
+        "inspect": {
+            "items": inv_inspect_items
         }
     },
     "net": {
