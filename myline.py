@@ -192,6 +192,12 @@ def check_temp_saves():
         Rprint("data_temp.json is missing")
         return False
 
+def debug_mode():
+    if saves[0]["settings"]["debug"]:
+        return True
+    else:
+        return False
+
 Wprint("")
 if not failload:
     Gprint("Started MyLine successfully")
@@ -206,6 +212,9 @@ if _has_restorable:
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
 else:
     Gprint("No restorable Changes Found")
+if debug_mode():
+    Yprint("You are in Debug Mode")
+
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
 Wprint("")
