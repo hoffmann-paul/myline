@@ -995,7 +995,7 @@ while True:
             commands[keyword][sub_keyword][sub_sub_keyword](flags)
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::valid")
         else:
-            RRprint(f">>{raw}<< isn't a valid command")
+            RRprint(f">>{raw}<< isn't a valid command. Type \"myline help c\" for all commands")
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::invalid")
     except (ValueError, IndexError, KeyError, TypeError) as e:
             # Normal user input mistakes — don't ask for a GitHub issue 
