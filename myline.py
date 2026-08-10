@@ -679,8 +679,6 @@ def myline_help_paths(flags):
     Wprint(f"company_ids file: {file_company_ids_json}")
     Wprint(f"cmdhistory file: {file_cmdhistory_json}")
     Wprint(f"data_temp file: {file_data_temp_json}")
-    Wprint(f"inventory table file: {file_inventory_table_json}")
-    Wprint(f"inventory session file: {file_inventory_session_json}")
 
 def myline_check_files(flags):
     files = {
@@ -689,8 +687,6 @@ def myline_check_files(flags):
         "company_ids.json": loaded_company_ids_json,
         "data_temp.json": loaded_data_temp_json,
         "data.json": loaded_data_json,
-        "inventory/table.json": loaded_inventory_table_json,
-        "inventory/session.json": loaded_inventory_sessioin_json
     }
     for file_name in files:
         if files[file_name]:
