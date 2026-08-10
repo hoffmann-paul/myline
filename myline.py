@@ -747,8 +747,20 @@ def myline_config_head(flags):
             Rprint(i)
 
 def myline_config_switch(flags):
-    ...
-
+    try:
+        if flags[1].lower() == "true":
+            saves[0]["settings"][flags[0]] = True
+            send_json(file_cmddata_json, saves)
+        elif flags[1].lower() == "false":
+            saves[0]["settings"][flags[0]] = False
+            send_json(file_cmddata_json, saves)
+        else:
+            ... #Add something here
+    except Exception as e:
+        if debug_mode():
+            RRprint(e)
+        else:
+            RRprint("An Error corrputed")
 
 # fast Commands:
 def kill(flags):
