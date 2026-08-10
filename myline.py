@@ -193,7 +193,7 @@ def check_temp_saves():
         return False
 
 def debug_mode():
-    if saves[0]["settings"]["debug"]:
+    if saves[0]["settings"]["debug-mode"]:
         return True
     else:
         return False
@@ -725,7 +725,11 @@ def myline_restore_changes(flags):
     Gprint(f"Restored {len(data)} record(s) from last session.")
 
 def myline_config_head(flags):
-    ...
+    for i in saves[0]["settings"]:
+        if saves[0]["settings"][i]:
+            Gprint(i)
+        else:
+            Rprint(i)
 
 def myline_config_switch(flags):
     ...
