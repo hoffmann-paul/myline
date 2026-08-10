@@ -199,11 +199,28 @@ def debug_mode():
         return False
 
 Wprint("")
+if debug_mode():
+    Yprint("You are in Debug Mode")
+
 if not failload:
     Gprint("Started MyLine successfully")
 else:
-    Yprint("Started MyLine with missing source files")
-    Yprint("Type \"myline check files\" for detailed informations")
+    if debug_mode():
+        files = {
+                "cmddata.json": loaded_cmddata_json,
+                "cmdhistory.json": loaded_cmdhistory_json,
+                "company_ids.json": loaded_company_ids_json,
+                "data_temp.json": loaded_data_temp_json,
+                "data.json": loaded_data_json,
+            }
+        for file_name in files:
+            if files[file_name]:
+                Gprint(f"Loaded {file_name} successfully")
+            else:
+                RRprint(f"An error occurred while trying to read {file_name}")
+    else:
+        Yprint("Started MyLine with missing source files")
+        Yprint("Type \"myline check files\" for detailed informations")
 Wprint("")
 Wprint("Checking for restorable Changes...")
 _has_restorable = check_temp_saves()
@@ -212,8 +229,6 @@ if _has_restorable:
     Yprint("Type \"myline restore changes\" to restore Changes from last Session")
 else:
     Gprint("No restorable Changes Found")
-if debug_mode():
-    Yprint("You are in Debug Mode")
 
 Wprint("")
 Wprint("Type \"myline help c\" for commands")
@@ -1020,10 +1035,9 @@ while True:
         else:
             RRprint(f">>{raw}<< isn't a valid command. Type \"myline help c\" for all commands")
             add_cmd_to_history(f"{keyword}_{sub_keyword}_{sub_sub_keyword} ::invalid")
-    except (ValueError, IndexError, KeyError, TypeError) as e:
-            # Normal user input mistakes — don't ask for a GitHub issue 
-            RRprint(f"Input error: {e}")
     except Exception as e:
-            RRprint(f"Unexpected Error: {e}")
-            RRprint("Please open an issue on GitHub")
+            if debug_mode():
+                RRprint(e)
+            else:
+                RRprint("An Error corrupted")
     Wprint("")
