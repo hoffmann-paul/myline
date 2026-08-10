@@ -33,8 +33,6 @@ DEFAULT_CMDDATA_JSON = 'storage/cmddata.json'
 DEFAULT_COMPANY_IDS_JSON = 'storage/company_ids.json'
 DEFAULT_CMDHISTORY_JSON = 'storage/cmdhistory.json'
 DEFAULT_DATA_TEMP_JSON = 'storage/data_temp.json'
-DEFAULT_INVENTORY_TABLE_JSON = 'storage/inventory/table.json'
-DEFAULT_INVENTORY_SESSION_JSON = 'storage/inventory/session.json'
 
 # --- System Variables ---
 version = "v1.0.0"
@@ -47,8 +45,6 @@ loaded_cmdhistory_json = False
 loaded_company_ids_json = False
 loaded_data_temp_json = False
 loaded_data_json = False
-loaded_inventory_table_json = False
-loaded_inventory_sessioin_json = False
 
 parser = argparse.ArgumentParser(description="MyLine")
 parser.add_argument(
@@ -87,18 +83,7 @@ parser.add_argument(
     default=DEFAULT_DATA_TEMP_JSON,
     help="Path to the data_temp.json auto-save file (defaults to '%(default)s')",
 )
-parser.add_argument(
-    "--inventory-table-file",
-    dest="inventory_table_file",
-    default=DEFAULT_INVENTORY_TABLE_JSON,
-    help="Path to the table.json file (defaults to '%(default)s')",
-)
-parser.add_argument(
-    "--inventory-session-file",
-    dest="inventory_session_file",
-    default=DEFAULT_INVENTORY_SESSION_JSON,
-    help="Path to the session.json file (defaults to '%(default)s')",
-)
+
 args = parser.parse_args()
 
 file_data_json = args.data_file
@@ -106,8 +91,6 @@ file_cmddata_json = args.cmddata_file
 file_company_ids_json = args.company_ids_file
 file_cmdhistory_json = args.cmdhistory_file
 file_data_temp_json = args.data_temp_file
-file_inventory_table_json = args.inventory_table_file
-file_inventory_session_json = args.inventory_session_file
 
 def _prefix():
     now = datetime.datetime.now()
@@ -198,20 +181,6 @@ try:
 except Exception:
     failload = True
     temp_data = 0
-
-try:
-    with open(file_inventory_table_json, 'r') as file:
-        inventory = json.load(file)
-        loaded_inventory_table_json = True
-except Exception:
-    failload = True
-
-try:
-    with open(file_inventory_session_json, 'r') as file:
-        session = json.load(file)
-        loaded_inventory_sessioin_json = True
-except Exception:
-    failload = True
 
 def check_temp_saves():
     if temp_data != 0:
