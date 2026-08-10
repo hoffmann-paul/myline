@@ -47,7 +47,9 @@ For a list of all commands, type: `myline help c`
 | `myline history clear` |  |  | Clears the Command History |
 | `myline check changes` |  |  | Checks if there are some unsaved changes |
 | `myline check files` |  |  | Checks if all Sourcefiles loaded at the Programm start |
-| `myline restore changes` |  |  | Restore last Sessions Changes |  
+| `myline restore changes` |  |  | Restore last Sessions Changes |
+| `myline config HEAD` |  |  | Shows a list of all configurable settings and there current state |
+| `myline config switch` | `configuration` | `true` `false` | changes a `configuration` to `true` or `false` | 
 
 ### Shortcuts
 - `Keys` can you add or not, it is doesn't matter in which sequence you add them.
