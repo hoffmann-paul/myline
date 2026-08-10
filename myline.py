@@ -724,6 +724,12 @@ def myline_restore_changes(flags):
     data = list(temp_data)  # shallow copy of the list of records
     Gprint(f"Restored {len(data)} record(s) from last session.")
 
+def myline_config_head(flags):
+    ...
+
+def myline_config_switch(flags):
+    ...
+
 
 # fast Commands:
 def kill(flags):
@@ -806,6 +812,10 @@ commands = {
         },
         "restore": {
             "changes": myline_restore_changes
+        },
+        "config": {
+            "HEAD": myline_config_head,
+            "switch": myline_config_switch
         }
     }
 } 
