@@ -10,6 +10,7 @@ import argparse
 import platform
 import sys
 import shutil
+import os
 
 # Tab completion needs a readline implementation. Prefer the third-party
 # ``gnureadline`` package when installed — on macOS the stdlib ``readline``
@@ -720,7 +721,9 @@ def myline_check_files(flags):
             RRprint(f"An error occurred while trying to read {file_name}")
 
 def myline_check_backup(flags):
-    ...
+    for filename in os.listdir('backups'):
+        if filename != ".DS_Store":
+            Wprint(filename)
         
 def myline_restore_changes(flags):
     """Restore auto-saved session data from data_temp.json.
