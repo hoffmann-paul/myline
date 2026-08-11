@@ -9,6 +9,8 @@ import subprocess
 import argparse
 import platform
 import sys
+import shutil
+import os
 
 # Tab completion needs a readline implementation. Prefer the third-party
 # ``gnureadline`` package when installed — on macOS the stdlib ``readline``
@@ -717,6 +719,11 @@ def myline_check_files(flags):
             Gprint(f"Loaded {file_name} successfully")
         else:
             RRprint(f"An error occurred while trying to read {file_name}")
+
+def myline_check_backup(flags):
+    for filename in os.listdir('backups'):
+        if filename != ".DS_Store":
+            Wprint(filename)
         
 def myline_restore_changes(flags):
     """Restore auto-saved session data from data_temp.json.
@@ -761,6 +768,47 @@ def myline_config_switch(flags):
             RRprint(e)
         else:
             RRprint("An Error corrputed")
+
+def myline_backup_save(flags):
+    now = datetime.datetime.now()
+    shutil.make_archive(f"backups/{now.strftime('%d.%m.%Y_%H:%M')}", "zip", "storage")
+        
+def myline_backup_restore(flags):
+    global data
+    global history
+    global saves
+    global company_ids
+    backups = []
+    for filename in os.listdir('backups'):
+        backups.append(filename)
+
+    path = f'backups/{backups[-1]}'
+    shutil.unpack_archive(path, "storage")  
+
+    try:
+        with open(file_data_json, 'r') as file:
+            data = json.load(file)
+    except Exception:
+        ...
+
+    try:
+        with open(file_cmdhistory_json, 'r') as file:
+            history = json.load(file)
+    except Exception:
+        ...
+
+    try:
+        with open(file_cmddata_json, 'r') as file:
+            saves = json.load(file)
+    except Exception:
+        ...
+
+    try:
+        with open(file_company_ids_json, 'r') as file:
+            company_ids_raw = json.load(file)
+            company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
+    except Exception:
+        ...
 
 # fast Commands:
 def kill(flags):
@@ -839,7 +887,8 @@ commands = {
         },
         "check": {
             "changes": myline_check_changes,
-            "files": myline_check_files
+            "files": myline_check_files,
+            "backup": myline_check_backup
         },
         "restore": {
             "changes": myline_restore_changes
@@ -847,6 +896,10 @@ commands = {
         "config": {
             "HEAD": myline_config_head,
             "switch": myline_config_switch
+        },
+        "backup": {
+            "save": myline_backup_save,
+            "restore": myline_backup_restore
         }
     }
 } 
