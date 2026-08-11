@@ -9,6 +9,7 @@ import subprocess
 import argparse
 import platform
 import sys
+import shutil
 
 # Tab completion needs a readline implementation. Prefer the third-party
 # ``gnureadline`` package when installed — on macOS the stdlib ``readline``
@@ -766,10 +767,11 @@ def myline_config_switch(flags):
             RRprint("An Error corrputed")
 
 def myline_backup_save(flags):
-    ...
-
+    now = datetime.datetime.now()
+    shutil.make_archive(f"backups/{now.strftime('%d.%m.%Y_%H:%M')}", "zip", "storage")
+        
 def myline_backup_restore(flags):
-    ...
+    ... # shutil.unpack_archive("backup_file", "target_folder")  
 
 # fast Commands:
 def kill(flags):
