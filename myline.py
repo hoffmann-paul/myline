@@ -717,6 +717,9 @@ def myline_check_files(flags):
             Gprint(f"Loaded {file_name} successfully")
         else:
             RRprint(f"An error occurred while trying to read {file_name}")
+
+def myline_check_backup(flags):
+    ...
         
 def myline_restore_changes(flags):
     """Restore auto-saved session data from data_temp.json.
@@ -761,6 +764,12 @@ def myline_config_switch(flags):
             RRprint(e)
         else:
             RRprint("An Error corrputed")
+
+def myline_backup_save(flags):
+    ...
+
+def myline_backup_restore(flags):
+    ...
 
 # fast Commands:
 def kill(flags):
@@ -839,7 +848,8 @@ commands = {
         },
         "check": {
             "changes": myline_check_changes,
-            "files": myline_check_files
+            "files": myline_check_files,
+            "backup": myline_check_backup
         },
         "restore": {
             "changes": myline_restore_changes
@@ -847,6 +857,10 @@ commands = {
         "config": {
             "HEAD": myline_config_head,
             "switch": myline_config_switch
+        },
+        "backup": {
+            "save": myline_backup_save,
+            "restore": myline_backup_restore
         }
     }
 } 
