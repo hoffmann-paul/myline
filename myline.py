@@ -774,7 +774,41 @@ def myline_backup_save(flags):
     shutil.make_archive(f"backups/{now.strftime('%d.%m.%Y_%H:%M')}", "zip", "storage")
         
 def myline_backup_restore(flags):
-    ... # shutil.unpack_archive("backup_file", "target_folder")  
+    global data
+    global history
+    global saves
+    global company_ids
+    backups = []
+    for filename in os.listdir('backups'):
+        backups.append(filename)
+
+    path = f'backups/{backups[-1]}'
+    shutil.unpack_archive(path, "storage")  
+
+    try:
+        with open(file_data_json, 'r') as file:
+            data = json.load(file)
+    except Exception:
+        ...
+
+    try:
+        with open(file_cmdhistory_json, 'r') as file:
+            history = json.load(file)
+    except Exception:
+        ...
+
+    try:
+        with open(file_cmddata_json, 'r') as file:
+            saves = json.load(file)
+    except Exception:
+        ...
+
+    try:
+        with open(file_company_ids_json, 'r') as file:
+            company_ids_raw = json.load(file)
+            company_ids = {entry["code"]: entry["name"] for entry in company_ids_raw}
+    except Exception:
+        ...
 
 # fast Commands:
 def kill(flags):
