@@ -1,5 +1,3 @@
 __pycache__/
-storage/cmdhistory.json
-storage/data.json
-storage/inventory/table.json
+/storage/
 /backups/
