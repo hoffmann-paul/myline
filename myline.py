@@ -545,7 +545,13 @@ def data_field_add(flags):
         i[flags[0]] = ""
 
 def data_field_listv(flags):
-    ...
+    c = 0
+    try:
+        for i in data:
+            Wprint(f"{c} >>> {i[flags[0]]}")
+            c = c + 1
+    except Exception:
+        RRprint(f"{flags[0]} doesn't excists")
 
 # net Commands:
 def net_pg_uop(flags):
