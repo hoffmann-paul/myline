@@ -1,12 +1,12 @@
 # MyLine
-MyLine is my own command-line tool.
+MyLine is my own command-line tool. There are one main Feature. The editing and storing of Data Record. Also some Network and Bluetooth commands are excisting. Feel free zu add any sort of Command.
 
 ## Get started
 
 Windows users: see **[WINDOWS_TESTING.md](WINDOWS_TESTING.md)** for a short smoke checklist (#76).
 Contributors: **[TESTING.md](TESTING.md)** — how to test and report bugs (#43).
 
-1. Download all files from github.com/hoffmann-paul/myline
+1. Download all files from **[The GitHub Page](github.com/hoffmann-paul/myline)**  
 2. Install everything in the requirements.txt
 3. Run MyLine: `python myline.py`
    - By default storage files live under `storage/` (`data.json`, `cmddata.json`, `company_ids.json`, `cmdhistory.json`, `data_temp.json`)
