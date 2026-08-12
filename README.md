@@ -38,6 +38,8 @@ For a list of all commands, type: `myline help c`
 | `data card delete` | `index` |  | Deletes a Data Record permanently |
 | `data inspect struc` |  |  | Shows a list of all Parameters |
 | `data inspect count` |  |  | Counts all Data Records |
+| `data field add` | `name` |  | Add a new data Field for all Data Records |
+| `data field listV` | `parameter` |  | List all values with index for one parameter |
 | `net pg uop` | `url` `port` |  | Tries to connect to a `url` on a specific `port` |
 | `ble HEAD devs` |  | `raw` `loop` | Scans BLE Signals and shows a list of Name; Local-Name; rssi; tx_power; MAC-Address; by adding `raw` it also shows devices where name == None, by adding `loop` it rescans every Second |
 | `myline help c` |  |  | Shows a list of all Commands |
