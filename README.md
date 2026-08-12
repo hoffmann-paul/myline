@@ -7,6 +7,28 @@ Windows users: see **[WINDOWS_TESTING.md](WINDOWS_TESTING.md)** for a short smok
 Contributors: **[TESTING.md](TESTING.md)** — how to test and report bugs (#43).
 
 1. Download all files from github.com/hoffmann-paul/myline
+   myline/
+   ├── .github/
+   │   └── ISSUE_TEMPLATE/
+   │       ├── bug_report.md
+   │       ├── bug-report-by-ai.md
+   │       └── feature_request.md
+   ├── .gitignore
+   ├── LICENSE
+   ├── myline.py
+   ├── README.md
+   ├── requirements.txt
+   ├── storage/
+   │   ├── cmddata.json
+   │   ├── cmdhistory.json
+   │   ├── company_ids.json
+   │   ├── data_temp.json
+   │   └── data.json
+   ├── TESTING.md
+   ├── tests/
+   │   ├── test_coerce_write_value.py
+   │   └── test_completion.py
+   └── WINDOWS_TESTING.md
 2. Install everything in the requirements.txt
 3. Run MyLine: `python myline.py`
    - By default storage files live under `storage/` (`data.json`, `cmddata.json`, `company_ids.json`, `cmdhistory.json`, `data_temp.json`)
