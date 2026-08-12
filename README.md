@@ -61,9 +61,10 @@ For a list of all commands, type: `myline help c`
 
 | Shortcut | Keys | Description |
 | ----- | ----- | ----- |
-| `kill` | | Checks if there are some unsaved changes; if yes then nothing happens, but if there are no unsaved changes MyLine is killed |
-| `kill f` | | Kills MyLine |
-| `last` | | Repeats the last Commnd if possible, you can only repeat commands without `flags` and `keys` |
+| `kill` |  | Checks if there are some unsaved changes; if yes then nothing happens, but if there are no unsaved changes MyLine is killed |
+| `kill f` |  | Kills MyLine |
+| `last` |  | Repeats the last Commnd if possible, you can only repeat commands without `flags` and `keys` |
+| `clear` |  | Clears the Terminal |
 
 ## Command Line Options
 | Flag | Description |

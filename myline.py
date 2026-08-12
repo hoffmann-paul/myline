@@ -852,6 +852,12 @@ def repeat_last_cmd(flags):
     else:
         Rprint("No command history found")
 
+def clear_screen(flags):
+    os.system(
+        'cls' if os.name ==
+        'nt' else 'clear'
+    )
+
 commands = {
     "data": {
         "GET": {
@@ -923,7 +929,8 @@ commands = {
 
 fast_commands = {
     "kill": kill,
-    "last": repeat_last_cmd
+    "last": repeat_last_cmd,
+    "clear": clear_screen
 }
 
 
