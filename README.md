@@ -1,5 +1,5 @@
 # MyLine
-MyLine is my own command-line tool.
+MyLine is my own command-line tool. There are one main Feature. The editing and storing of Data Record. Also some Network and Bluetooth commands are excisting. Feel free zu add any sort of Command.
 
 ## Get started
 
