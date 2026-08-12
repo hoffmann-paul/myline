@@ -540,6 +540,12 @@ def data_card_delete(flags):
     data.pop(int(flags[0]))
     Rprint(f"Popped Data Record at index {flags[0]}")
 
+def data_field_add(flags):
+    ...
+
+def data_field_listv(flags):
+    ...
+
 # net Commands:
 def net_pg_uop(flags):
     test_connection(flags[0], int(flags[1]))
@@ -863,6 +869,10 @@ commands = {
         "inspect": {
             "struc": data_inspect_struc,
             "count": data_inspect_count
+        },
+        "field": {
+            "add": data_field_add,
+            "listV": data_field_listv
         }
     },
     "net": {
