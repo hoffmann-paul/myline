@@ -541,7 +541,8 @@ def data_card_delete(flags):
     Rprint(f"Popped Data Record at index {flags[0]}")
 
 def data_field_add(flags):
-    ...
+    for i in data:
+        i[flags[0]] = ""
 
 def data_field_listv(flags):
     ...
