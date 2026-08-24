@@ -449,7 +449,16 @@ def data_get_im(flags):
 def data_head_f(flags):
     index = flags[0]
 
-    for key, value in data[int(index)].items():
+    try:
+        idx = int(index)
+    except (TypeError, ValueError):
+        GGprint(f"Invalid index: {index!r} (must be an integer)")
+        return
+    if idx < 0 or idx >= len(data):
+        GGprint(f"Index {idx} out of range (0..{len(data) - 1})")
+        return
+
+    for key, value in data[idx].items():
         if is_filled_value(value):
             if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
                 message = key + " >>> " + str(value)
@@ -474,7 +483,16 @@ def data_head_f(flags):
 def data_head_raw(flags):
     index = flags[0]
 
-    for key, value in data[int(index)].items():
+    try:
+        idx = int(index)
+    except (TypeError, ValueError):
+        GGprint(f"Invalid index: {index!r} (must be an integer)")
+        return
+    if idx < 0 or idx >= len(data):
+        GGprint(f"Index {idx} out of range (0..{len(data) - 1})")
+        return
+
+    for key, value in data[idx].items():
         if is_filled_value(value):
             if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
                 message = key + " >>> " + str(value)
