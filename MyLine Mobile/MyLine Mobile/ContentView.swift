@@ -8,13 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @State private var selection = 0
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
+        VStack(alignment: .center) {
+            TabView(selection: $selection){
+                Tab("Data Records",systemImage: "menucard", value: 0){
+                    Text("Data Records")
+                        .font(.headline)
+                        .bold()
+                    Data_Records()
+                }
+                Tab("Settings",systemImage: "gear", value: 1){
+                    Text("Settings")
+                        .font(.headline)
+                        .bold()
+                   Settings()
+                }
+            }
+        }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding()
     }
 }
