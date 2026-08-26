@@ -24,7 +24,7 @@ struct ContentView: View {
                     Text("Settings")
                         .font(.headline)
                         .bold()
-                   Settings()
+                   SettingsView()
                 }
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
