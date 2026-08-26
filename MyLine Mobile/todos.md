@@ -1,2 +1,4 @@
 # To-Dos
-[ ] Add Logic for import and export functions in Settings.swift 
+- Add Logic for Export funtion in Settings.swift
+- Write Code so that the importet DataSets are saved in @AppStorage
+- Create new Entry Structure for DataSets (and update every Data Set)
