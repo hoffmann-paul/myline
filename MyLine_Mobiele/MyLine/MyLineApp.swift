@@ -1,6 +1,6 @@
 //
 //  MyLineApp.swift
-//  
+//  MyLine
 //
 //  Created by Paul Hoffmann on 26.08.26.
 //
