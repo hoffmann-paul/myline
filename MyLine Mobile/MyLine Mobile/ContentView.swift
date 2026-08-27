@@ -15,15 +15,9 @@ struct ContentView: View {
         VStack(alignment: .center) {
             TabView(selection: $selection){
                 Tab("Data Records",systemImage: "menucard", value: 0){
-                    Text("Data Records")
-                        .font(.headline)
-                        .bold()
                     Data_Records()
                 }
                 Tab("Settings",systemImage: "gear", value: 1){
-                    Text("Settings")
-                        .font(.headline)
-                        .bold()
                    SettingsView()
                 }
             }
