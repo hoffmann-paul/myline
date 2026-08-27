@@ -7,7 +7,7 @@ struct DataSet: Codable, Identifiable {
     var name: String
     var age: Int
     var gender: String
-    var height: Double
+    var height: String
     var weight: Double
     var eyeColor: String
     var hairColor: String
